@@ -6,10 +6,10 @@ __all__ = [
 
 from collections import namedtuple
 
-import iga
+from .core import IgaError
 
 
-class Label(namedtuple('Label', 'package target variant')):
+class Label(namedtuple('Label', 'package target environment')):
     '''Represent a label string.'''
 
     @staticmethod
@@ -30,29 +30,29 @@ class Label(namedtuple('Label', 'package target variant')):
             target_start = package_end
         target_end = (_find_or_none(label_string, '@', target_start) or
                       len(label_string))
-        # Parse '@variant' part.
+        # Parse '@environment' part.
         if label_string[target_end:target_end+1] == '@':
-            variant = label_string[target_end+1:]
+            environment = label_string[target_end+1:]
         else:
-            variant = iga.DEFAULT_VARIANT
-        if not variant:
-            raise iga.Error(
-                'cannot have empty variant after "@" in "%s"' %
+            environment = '*'  # Default to any environment.
+        if not environment:
+            raise IgaError(
+                'cannot have empty environment after "@" in "%s"' %
                 label_string)
         # Consstruct a Label object.
-        package = label_string[package_start:package_end]
-        target = label_string[target_start:target_end]
+        package = label_string[package_start:package_end] or None
+        target = label_string[target_start:target_end] or None
         if not package and not target:
-            raise iga.Error(
+            raise IgaError(
                 'cannot have both package and target empty in label "%s"' %
                 label_string)
-        return Label(package=package, target=target, variant=variant)
+        return Label(package=package, target=target, environment=environment)
 
     def as_string(self, current_package):
         '''Transform into a label string.'''
         package = self.package or current_package
         target = self.target or _default_target(package)
-        return '//%s:%s@%s' % (package, target, self.variant)
+        return '//%s:%s@%s' % (package, target, self.environment)
 
 
 def _find_or_none(string, substring, start):
