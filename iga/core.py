@@ -1,4 +1,4 @@
-'''Core utilities.'''
+"""Core utilities."""
 
 __all__ = [
     'IgaError',
@@ -6,5 +6,5 @@ __all__ = [
 
 
 class IgaError(Exception):
-    '''An error inside iga.'''
+    """An iga internal error."""
     pass

@@ -1,4 +1,4 @@
-'''Meta-configure object.'''
+"""Meta-configure object."""
 
 __all__ = [
     'ConfigureProperty',
@@ -12,105 +12,156 @@ from .core import IgaError
 
 
 class MetaConfigure(type):
-    '''The meta-class of configure classes.'''
+    """The meta-class of configure classes."""
 
-    def __new__(mcs, name, bases, namespace):
+    def __new__(mcs, cls_name, bases, namespace):
         properties = {
             name: prop for name, prop in namespace.items()
             if isinstance(prop, ConfigureProperty)
         }
-        if any(name.startswith('_') for name in properties):
-            raise IgaError('configure property starts with "_"')
-        cls_namespace = {
-            '__init__': functools.partialmethod(
-                MetaConfigure.init, namespace.get('__init__')),
-            '_accessors_as_dict': MetaConfigure.accessors_as_dict,
-            '_properties': properties,
-        }
-        cls_namespace.update(
-            (name, prop.as_accessor(name)) for name, prop in properties.items()
+
+        # Sanity check.
+        for name in properties:
+            if name.startswith('_'):
+                raise IgaError(
+                    'configure property "%s.%s" starts with "_"' %
+                    (cls_name, name))
+        for reserved in ('_properties', '_data'):
+            if reserved in namespace:
+                raise IgaError(
+                    'configure property "%s.%s" conflicts with base class' %
+                    (cls_name, reserved))
+
+        for name, prop in properties.items():
+            namespace[name] = Accessor(name, prop)
+            namespace[name].__doc__ = prop.doc
+        namespace['_properties'] = properties
+        bases = (BaseConfigure,) + bases
+        return type.__new__(mcs, cls_name, bases, namespace)
+
+
+class BaseConfigure:
+    """The base class of all configure classes."""
+
+    def __init__(self):
+        """Initialize configure object data."""
+        self._data = {}
+        self._data.update(
+            (name, {}) for name, prop in self._properties.items()
+            if prop.is_mapping_property()
         )
-        return type.__new__(mcs, name, bases, cls_namespace)
+        self._data.update(
+            (name, []) for name, prop in self._properties.items()
+            if prop.is_repeated_property()
+        )
 
-    def init(self, chained_init, *args, **kwargs):
-        '''Initialize a configure object.'''
-        self._data = {
-            name: prop.default() for name, prop in self._properties.items()
-            if prop.default is not None
-        }
-        if chained_init is not None:
-            chained_init(self, *args, **kwargs)
-
-    def accessors_as_dict(self):
-        '''Return accessors in a dict.'''
+    def get_accessors(self):
+        """Return accessors in a dict."""
         return {name: getattr(self, name) for name in self._properties}
 
+    def has_value(self, name):
+        """Test if a property has been set."""
+        return name in self._data
 
-class ConfigureProperty(
-        namedtuple('ConfigureProperty', 'type default function description')):
-    '''A configure object property.'''
+    def access_scalar(self, name, scalar_type, args, _):
+        """Scalar property accessor."""
+        if args:
+            value = args[0]
+            assert isinstance(value, scalar_type)
+            self._data[name] = value
+        if name not in self._data:
+            raise IgaError('property "%s" has not been set yet' % name)
+        return self._data[name]
 
-    FunctionType = 'FunctionType'
+    def access_mapping(self, name, key_type, value_type, args, _):
+        """Mapping property accessor."""
+        if not args:
+            return self._data[name]
+        key = args[0]
+        assert isinstance(key, key_type)
+        if len(args) > 1:
+            value = args[1]
+            assert isinstance(value, value_type)
+            self._data[name][key] = value
+        return self._data[name][key]
 
-    @staticmethod
-    def data(type, default, description):
-        '''Make a data property.'''
-        return ConfigureProperty(
-            type=type,
-            default=default,
-            function=None,
-            description=description,
-        )
+    def access_repeated_scalar(self, name, scalar_type, args, _):
+        """Repeated scalar property accessor."""
+        lst = self._data[name]
+        if args:
+            assert isinstance(args[0], scalar_type)
+            lst.append(args[0])
+        return lst
 
-    @staticmethod
-    def func(function, description):
-        '''Make a function property.'''
-        return ConfigureProperty(
-            type=ConfigureProperty.FunctionType,
-            default=None,
-            function=function,
-            description=description,
-        )
+    def access_repeated_tuple(self, name, args, _):
+        """Repeated tuple property accessor."""
+        lst = self._data[name]
+        if args:
+            lst.append(tuple(args))
+        return lst
 
-    def as_accessor(self, name):
-        '''Make an accessor function of this property.'''
-        if self.type == ConfigureProperty.FunctionType:
-            make = self._make_function_accessor
-        elif isinstance(self.type, tuple):
-            make = self._make_mapping_accessor
+    def access_repeated_dict(self, name, _, kwargs):
+        """Repeated dict property accessor."""
+        lst = self._data[name]
+        if kwargs:
+            lst.append(kwargs.copy())
+        return lst
+
+
+class ConfigureProperty(namedtuple('ConfigureProperty', 'type doc')):
+    """A configure object property."""
+
+    def is_scalar_property(self):
+        """True if this is a scalar property."""
+        return not (self.is_mapping_property() or self.is_repeated_property())
+
+    def is_mapping_property(self):
+        """True if this is a mapping property."""
+        return isinstance(self.type, tuple)
+
+    def is_repeated_property(self):
+        """True if this is a repeated scalar/tuple/dict property."""
+        return isinstance(self.type, list)
+
+
+class Accessor(namedtuple('Accessor', 'name prop')):
+    """A descriptor that wraps a ConfigureProperty object."""
+
+    def __get__(self, configure, _):
+        """Return an accessor to the configure object."""
+        if self.prop.is_mapping_property():
+            accessor = functools.partial(
+                configure.access_mapping,
+                self.name,
+                self.prop.type[0],
+                self.prop.type[1])
+        elif self.prop.is_repeated_property():
+            element_type = self.prop.type[0]
+            if element_type is dict:
+                accessor = functools.partial(
+                    configure.access_repeated_dict,
+                    self.name)
+            elif element_type is tuple:
+                accessor = functools.partial(
+                    configure.access_repeated_tuple,
+                    self.name)
+            else:
+                accessor = functools.partial(
+                    configure.access_repeated_scalar,
+                    self.name,
+                    element_type)
         else:
-            make = self._make_scalar_accessor
-        accessor = make(name)
-        accessor.__doc__ = self.description
-        return accessor
+            accessor = functools.partial(
+                configure.access_scalar,
+                self.name,
+                self.prop.type)
+        return self._wrap(accessor)
 
-    def _make_function_accessor(prop, name):
-        '''Make a function property accessor.'''
-        def function_accessor(self, **kwargs):
-            '''An accessor of a function property.'''
-            return prop.function(self, name, kwargs)
-        return function_accessor
-
-    def _make_scalar_accessor(prop, name):
-        '''Make a scalar property accessor.'''
-        def scalar_accessor(self, *args):
-            '''An accessor of a scalar property.'''
-            if args:
-                assert isinstance(args[0], prop.type)
-                self._data[name] = args[0]
-            try:
-                return self._data[name]
-            except KeyError:
-                raise IgaError('property "%s" has not been set yet' % name)
-        return scalar_accessor
-
-    def _make_mapping_accessor(prop, name):
-        '''Make a mapping property accessor.'''
-        def mapping_accessor(self, key, *args):
-            '''An accessor of a mapping property.'''
-            assert isinstance(key, prop.type[0])
-            if args:
-                assert isinstance(args[0], prop.type[1])
-                self._data[name][key] = args[0]
-            return self._data[name][key]
-        return mapping_accessor
+    def _wrap(self, func):
+        """Wrap func with a trampoline."""
+        def trampoline(*args, **kwargs):
+            """A trampoline passing args and kwargs to func."""
+            return func(args, kwargs)
+        trampoline.__name__ = self.name
+        trampoline.__doc__ = self.prop.doc
+        return trampoline

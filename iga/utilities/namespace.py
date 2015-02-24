@@ -1,15 +1,15 @@
-'''Create module-like namespaces for global variables.'''
-
-import sys
+"""Create module-like namespaces for global variables."""
 
 __all__ = [
     'Namespace',
     'install',
 ]
 
+import sys
+
 
 class Namespace:
-    '''Write-once namespace object.'''
+    """Write-once namespace object."""
 
     _NO_ATTRIBUTE = "'Namespace' object has no attribute '%s'"
     _OVERWRITE = "cannot overwrite attribute '%s'"
@@ -40,7 +40,7 @@ class Namespace:
 
 
 def install(name):
-    '''Install namespace to sys.modules.'''
+    """Install namespace to sys.modules."""
     if hasattr(sys, '_getframe'):
         caller_frame = sys._getframe(1)
     else:

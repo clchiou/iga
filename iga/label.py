@@ -1,4 +1,4 @@
-'''Process label string.'''
+"""Manipulate label string."""
 
 __all__ = [
     'Label',
@@ -10,11 +10,11 @@ from .core import IgaError
 
 
 class Label(namedtuple('Label', 'package target environment')):
-    '''Represent a label string.'''
+    """The label object."""
 
     @staticmethod
     def from_string(label_string):
-        '''Parse a label string.'''
+        """Parse a label object from its textual representation."""
         # Parse '//package' part.
         if label_string.startswith('//'):
             package_start = 2
@@ -49,18 +49,18 @@ class Label(namedtuple('Label', 'package target environment')):
         return Label(package=package, target=target, environment=environment)
 
     def as_string(self, current_package):
-        '''Transform into a label string.'''
+        """Make a textual representation of the label."""
         package = self.package or current_package
         target = self.target or _default_target(package)
         return '//%s:%s@%s' % (package, target, self.environment)
 
 
 def _find_or_none(string, substring, start):
-    '''Find the start of the substring or return None.'''
+    """Find the start of the substring or return None."""
     index = string.find(substring, start)
     return index if index != -1 else None
 
 
 def _default_target(package):
-    '''Return the default target from a package string.'''
+    """Return the default target from a package string."""
     return package[package.rfind('/')+1:]

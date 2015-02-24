@@ -1,7 +1,7 @@
 import unittest
 
-from iga import IgaError
-from iga import Label
+from iga.core import IgaError
+from iga.label import Label
 
 
 class TestLabel(unittest.TestCase):
