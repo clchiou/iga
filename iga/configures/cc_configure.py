@@ -1,17 +1,18 @@
-"""C/C++ rule set."""
+"""C/C++ build rules."""
 
 __all__ = [
-    'make_cc_ruleset',
+    'CcConfigure',
 ]
 
-from iga.configure import ConfigureProperty
-from iga.configure import MetaConfigure
-from iga.ruleset import RuleSet
+from iga import (
+    ConfigureProperty,
+    MetaConfigure,
+)
 
-
-def make_cc_ruleset():
-    """Make a default CcRuleset object."""
-    return RuleSet(make_configure=CcConfigure, make_rules=make_cc_rules)
+from iga import (
+    Label,
+    Rule,
+)
 
 
 class CcConfigure(metaclass=MetaConfigure):
@@ -29,7 +30,7 @@ class CcConfigure(metaclass=MetaConfigure):
     cc_library = ConfigureProperty(
         [dict], """Build rule for C++ library.""")
 
-
-def make_cc_rules(package, configure):
-    """Make Rule objects from a CcConfigure object."""
-    pass
+    def make_rules(self, package_name):
+        """Make Rule objects."""
+        # TODO: Actually make rules.
+        return []
