@@ -3,7 +3,7 @@ import unittest
 from iga.core import ImmutableOrderedSet
 
 
-class ImmutableOrderedSetTest(unittest.TestCase):
+class TestImmutableOrderedSet(unittest.TestCase):
 
     def test_contains(self):
         self.assertTrue('a' not in ImmutableOrderedSet(''))

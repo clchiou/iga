@@ -3,7 +3,7 @@ import unittest
 from iga.core import WriteOnceDict
 
 
-class WriteOnceDictTest(unittest.TestCase):
+class TestWriteOnceDict(unittest.TestCase):
 
     def test_write_once(self):
         d = WriteOnceDict([(1, 1), (2, 2)])
