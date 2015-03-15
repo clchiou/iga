@@ -57,7 +57,7 @@ def c_library(*, name, srcs, deps=()):
     srcs = list(itertools.chain.from_iterable(map(FileLabel.expand, srcs)))
     libs = [ModuleLabel.parse(dep) for dep in deps]
     inputs = {C_SOURCE: srcs, C_LIBRARY: libs}
-    lib = FileLabel.from_module_label(name).replace(basename=to_libname)
+    lib = FileLabel.copy(name).replace(basename=to_libname)
     outputs = {C_LIBRARY: [lib]}
     add_module(type=C_LIBRARY, name=name, inputs=inputs, outputs=outputs)
 
@@ -68,7 +68,7 @@ def c_program(*, name, srcs=(), deps=()):
     srcs = list(itertools.chain.from_iterable(map(FileLabel.expand, srcs)))
     libs = [ModuleLabel.parse(dep) for dep in deps]
     inputs = {C_SOURCE: srcs, C_LIBRARY: libs}
-    outputs = {C_PROGRAM: [FileLabel.from_module_label(name)]}
+    outputs = {C_PROGRAM: [FileLabel.copy(name)]}
     add_module(type=C_PROGRAM, name=name, inputs=inputs, outputs=outputs)
 
 
@@ -102,10 +102,10 @@ def generate_buildstmts(module_type, module):
             libs.extend(mod.outputs[C_LIBRARY])
             queue.extend(mod.inputs[C_LIBRARY])
         lib_paths = ' '.join(ImmutableOrderedSet(
-            '-L%s' % os.path.dirname(lib.to_path()) for lib in libs
+            '-L%s' % os.path.dirname(lib.relpath) for lib in libs
         ))
         lib_names = ' '.join(
-            '-l%s' % from_libname(os.path.basename(lib.to_path()))
+            '-l%s' % from_libname(os.path.basename(lib.relpath))
             for lib in libs
         )
         yield make_buildstmt(

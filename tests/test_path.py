@@ -5,6 +5,7 @@ import unittest
 import iga.context
 from iga.path import get_caller_path
 from iga.path import get_package
+from iga.path import to_relpath
 
 
 class TestPath(unittest.TestCase):
@@ -33,6 +34,15 @@ class TestPath(unittest.TestCase):
         path = '%s/%s/package.py' % (source, package)
         iga.context.get_context()['source'] = source
         self.assertEqual(package, get_package(path))
+
+    def test_to_path(self):
+        project_root = '/path/to/project'
+        source = project_root + '/src'
+        context = {
+            'project_root': project_root,
+            'source': source,
+        }
+        self.assertEqual('src/a/b/c', to_relpath('a/b/c', context=context))
 
 
 if __name__ == '__main__':

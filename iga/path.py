@@ -3,6 +3,7 @@
 __all__ = [
     'get_caller_path',
     'get_package',
+    'to_relpath',
 ]
 
 import inspect
@@ -35,3 +36,10 @@ def get_package(path, *, context=None):
     if os.sep != '/':
         package = package.replace(os.sep, '/')
     return package
+
+
+def to_relpath(string, *, context=None):
+    context = context or iga.context.get_context()
+    path = string if os.sep == '/' else string.replace('/', os.sep)
+    path = os.path.join(context['source'], path)
+    return os.path.relpath(path, context['project_root'])
