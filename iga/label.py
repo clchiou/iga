@@ -10,11 +10,19 @@ __all__ = [
 import posixpath
 from collections import namedtuple
 
+import iga.context
 import iga.path
 from iga.error import IgaError
 
 
-Label = namedtuple('Label', 'package target')
+class Label(namedtuple('Label', 'package target')):
+
+    def __str__(self):
+        return '//%s:%s' % (self.package, self.target)
+
+    def __repr__(self):
+        return ('%s(\'//%s:%s\')' %
+                (self.__class__.__name__, self.package, self.target))
 
 
 class FileLabel(Label):
@@ -28,10 +36,7 @@ class FileLabel(Label):
     @staticmethod
     def expand(label_string, *, package=None):
         if package is None:
-            package = iga.path.get_caller_path(ancestor=1)
-            if package is None:
-                raise IgaError('cannot determine package path')
-            package = iga.path.get_package(package)
+            package = iga.context.get_context()['package']
         # TODO: Support glob for local and generated files (labels).
         label = _parse_label(FileLabel, label_string, package)
         return [label]
@@ -69,11 +74,12 @@ class ModuleLabel(Label):
     def parse(label_string, *, package=None):
         """Parse ModuleLabel string representation."""
         if package is None:
-            package = iga.path.get_caller_path(ancestor=1)
-            if package is None:
-                raise IgaError('cannot determine package path')
-            package = iga.path.get_package(package)
+            package = iga.context.get_context()['package']
         return _parse_label(ModuleLabel, label_string, package)
+
+
+def parse_label(label_string):
+    return _parse_label(Label, label_string, None)
 
 
 def _parse_label(cls, label_string, package_from_context):

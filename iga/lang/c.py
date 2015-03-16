@@ -53,6 +53,8 @@ def init_c():
 
 
 def c_library(*, name, srcs, deps=()):
+    assert not isinstance(srcs, str)
+    assert not isinstance(deps, str)
     name = ModuleLabel.parse(name)
     srcs = list(itertools.chain.from_iterable(map(FileLabel.expand, srcs)))
     libs = [ModuleLabel.parse(dep) for dep in deps]
@@ -63,6 +65,8 @@ def c_library(*, name, srcs, deps=()):
 
 
 def c_program(*, name, srcs=(), deps=()):
+    assert not isinstance(srcs, str)
+    assert not isinstance(deps, str)
     assert srcs or deps
     name = ModuleLabel.parse(name)
     srcs = list(itertools.chain.from_iterable(map(FileLabel.expand, srcs)))

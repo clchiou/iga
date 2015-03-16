@@ -3,10 +3,15 @@ __all__ = [
     'make_buildstmt',
 ]
 
+import logging
 from collections import namedtuple
 
 from iga.core import WriteOnceDict
 from iga.error import IgaError
+
+
+LOG = logging.getLogger(__name__)
+LOG.addHandler(logging.NullHandler())
 
 
 RULE_VARS = (
@@ -45,6 +50,7 @@ _RULES = WriteOnceDict()
 
 
 def add_rule(*, name, command, **kwargs):
+    LOG.info('add rule %r', name)
     variables = kwargs.copy()
     if name in RESERVED_RULE_NAMES:
         raise IgaError('cannot use %r as rule name' % name)

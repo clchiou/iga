@@ -2,7 +2,6 @@
 
 __all__ = [
     'get_caller_path',
-    'get_package',
     'to_relpath',
 ]
 
@@ -27,15 +26,6 @@ def get_caller_path(ancestor):
     if index >= len(call_stack):
         return None
     return os.path.join(os.getcwd(), call_stack[index][1])
-
-
-def get_package(path, *, context=None):
-    """Return package name from path."""
-    context = context or iga.context.get_context()
-    package = os.path.relpath(os.path.dirname(path), context['source'])
-    if os.sep != '/':
-        package = package.replace(os.sep, '/')
-    return package
 
 
 def to_relpath(string, *, context=None):
