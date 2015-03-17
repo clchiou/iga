@@ -2,7 +2,6 @@
 
 __all__ = [
     'get_caller_path',
-    'to_relpath',
 ]
 
 import inspect
@@ -28,8 +27,15 @@ def get_caller_path(ancestor):
     return os.path.join(os.getcwd(), call_stack[index][1])
 
 
-def to_relpath(string, *, context=None):
-    context = context or iga.context.get_context()
+def to_source_relpath(string, *, context=None):
+    return _to_relpath(string, 'source', context or iga.context.get_context())
+
+
+def to_build_relpath(string, *, context=None):
+    return _to_relpath(string, 'build', context or iga.context.get_context())
+
+
+def _to_relpath(string, space, context):
     path = string if os.sep == '/' else string.replace('/', os.sep)
-    path = os.path.join(context['source'], path)
+    path = os.path.join(context[space], path)
     return os.path.relpath(path, context['project_root'])

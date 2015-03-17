@@ -60,6 +60,10 @@ def add_rule(*, name, command, **kwargs):
     _RULES[name] = Rule(name=name, command=command, variables=variables)
 
 
+def find_rule(name):
+    return _RULES[name]
+
+
 Rule = namedtuple('Rule', 'name command variables')
 
 

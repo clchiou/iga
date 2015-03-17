@@ -40,12 +40,14 @@ def init_c():
     )
     add_module_type(
         name=C_LIBRARY,
+        rules=[C_COMPILE, C_LIBRARY],
         input_types=[C_SOURCE, C_LIBRARY],
         output_types=[C_LIBRARY],
         generate_buildstmts=generate_buildstmts,
     )
     add_module_type(
         name=C_PROGRAM,
+        rules=[C_COMPILE, C_PROGRAM],
         input_types=[C_SOURCE, C_LIBRARY],
         output_types=[C_PROGRAM],
         generate_buildstmts=generate_buildstmts,
@@ -76,8 +78,8 @@ def c_program(*, name, srcs=(), deps=()):
     add_module(type=C_PROGRAM, name=name, inputs=inputs, outputs=outputs)
 
 
-def generate_buildstmts(module_type, module):
-    assert module_type in (C_LIBRARY, C_PROGRAM)
+def generate_buildstmts(module):
+    assert module.type in (C_LIBRARY, C_PROGRAM)
     objs = []
     for src in module.inputs[C_SOURCE]:
         obj = src.replace(ext='.o')
@@ -87,7 +89,7 @@ def generate_buildstmts(module_type, module):
             outputs=[obj],
             explicit_deps=[src],
         )
-    if module_type == C_LIBRARY:
+    if module.type == C_LIBRARY:
         libs = list(itertools.chain.from_iterable(
             find_module(lib).outputs[C_LIBRARY]
             for lib in module.inputs[C_LIBRARY]
@@ -98,7 +100,7 @@ def generate_buildstmts(module_type, module):
             explicit_deps=objs,
             implicit_deps=libs,
         )
-    else:  # module_type == C_PROGRAM:
+    else:  # module.type == C_PROGRAM:
         libs = []
         queue = list(module.inputs[C_LIBRARY])
         while queue:

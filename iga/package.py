@@ -14,7 +14,8 @@ LOG.addHandler(logging.NullHandler())
 
 
 def load_package(package):
-    package_path = os.path.join(iga.path.to_relpath(package), 'package.py')
+    package_path = os.path.join(
+        iga.path.to_source_relpath(package), 'package.py')
     LOG.info('load %r', package_path)
     with open(package_path) as package_file:
         code = package_file.read()

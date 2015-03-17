@@ -64,7 +64,9 @@ class FileLabel(Label):
     @property
     def relpath(self):
         """Return the relative path of the file."""
-        return iga.path.to_relpath(posixpath.join(self.package, self.target))
+        # FIXME: Call to_source_relpath here is incorrect!
+        return iga.path.to_source_relpath(
+            posixpath.join(self.package, self.target))
 
 
 class ModuleLabel(Label):

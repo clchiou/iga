@@ -22,6 +22,12 @@ class ImmutableOrderedSet:
     def __iter__(self):
         return iter(self._data)
 
+    def __repr__(self):
+        return '%s(%r)' % (self.__class__.__name__, list(self._data.keys()))
+
+    def __str__(self):
+        return '%s(%r)' % (self.__class__.__name__, list(self._data.keys()))
+
 
 class WriteOnceDict(MutableMapping):
     """A dict that does not allow overwriting keys."""
@@ -48,3 +54,9 @@ class WriteOnceDict(MutableMapping):
 
     def __len__(self):
         return len(self._data)
+
+    def __repr__(self):
+        return '%s(%r)' % (self.__class__.__name__, self._data)
+
+    def __str__(self):
+        return '%s(%r)' % (self.__class__.__name__, self._data)
