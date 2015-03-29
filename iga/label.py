@@ -5,14 +5,22 @@ independent manner (like path separator is always '/').
 __all__ = [
     'FileLabel',
     'ModuleLabel',
+    'glob',
 ]
 
 import posixpath
+import re
 from collections import namedtuple
 
 import iga.context
 import iga.path
 from iga.error import IgaError
+
+
+def glob(pattern, *, package=None):
+    # TODO...
+    package = package or iga.context.get_context()['package']
+    return re.compile(pattern)
 
 
 class Label(namedtuple('Label', 'package target')):
@@ -32,14 +40,6 @@ class FileLabel(Label):
     def copy(label):
         """Create a copy of label."""
         return FileLabel(package=label.package, target=label.target)
-
-    @staticmethod
-    def expand(label_string, *, package=None):
-        if package is None:
-            package = iga.context.get_context()['package']
-        # TODO: Support glob for local and generated files (labels).
-        label = _parse_label(FileLabel, label_string, package)
-        return [label]
 
     def replace(self, *, basename=None, ext=None):
         """Replace a part of the label."""

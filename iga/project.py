@@ -1,15 +1,11 @@
-"""Define a project."""
-
 __all__ = [
     'project',
 ]
 
 import logging
 import os.path
-import sys
 
 import iga.context
-import iga.main
 import iga.path
 from iga.error import IgaError
 
@@ -42,4 +38,3 @@ def project(
         build=build,
         variables=variables,
     )
-    sys.exit(iga.main.main(sys.argv))

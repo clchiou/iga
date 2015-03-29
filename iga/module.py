@@ -23,23 +23,32 @@ def find_module_type(name):
 
 
 def add_module_type(
-        *, name, rules, input_types, output_types, generate_buildstmts):
+        *,
+        name,
+        input_types,
+        output_types,
+        generate_output_names,
+        generate_buildstmts):
     LOG.info('add module type %r', name)
     _MODULE_TYPES[name] = ModuleType(
         name=name,
-        rules=rules,
         input_types=input_types,
         output_types=output_types,
+        generate_output_names=generate_output_names,
         generate_buildstmts=generate_buildstmts,
     )
 
 
 ModuleType = namedtuple('ModuleType', '''
-        name rules input_types output_types generate_buildstmts''')
+        name
+        input_types
+        output_types
+        generate_output_names
+        generate_buildstmts
+''')
 
 
 def find_module(label):
-    """Find module by label."""
     return _MODULES[label]
 
 
@@ -47,14 +56,27 @@ def has_module(label):
     return label in _MODULES
 
 
-def add_module(*, name, type, inputs, outputs):
-    LOG.info('add module \'%s\'', name)
+def add_module(
+        *,
+        name,
+        type,
+        inputs,
+        inputs_patterns,
+        outputs):
+    LOG.info('add module %r', name)
     _MODULES[name] = Module(
         name=name,
         type=type,
         inputs=inputs,
+        inputs_patterns=inputs_patterns,
         outputs=outputs,
     )
 
 
-Module = namedtuple('Module', 'name type inputs outputs')
+Module = namedtuple('Module', '''
+        name
+        type
+        inputs
+        inputs_patterns
+        outputs
+''')

@@ -1,6 +1,7 @@
 __all__ = [
+    'Buildstmt',
     'add_rule',
-    'make_buildstmt',
+    'find_rule',
 ]
 
 import logging
@@ -67,22 +68,28 @@ def find_rule(name):
 Rule = namedtuple('Rule', 'name command variables')
 
 
-def make_buildstmt(
-        *,
-        rule,
-        outputs,
-        explicit_deps=None,
-        implicit_deps=None,
-        orderonly_deps=None,
-        variables=None):
-    return Buildstmt(
-        rule=rule,
-        outputs=outputs,
-        explicit_deps=explicit_deps,
-        implicit_deps=implicit_deps,
-        orderonly_deps=orderonly_deps,
-        variables=variables)
+class Buildstmt(namedtuple('Buildstmt', '''
+        rule
+        outputs
+        explicit_deps
+        implicit_deps
+        orderonly_deps
+        variables
+        ''')):
 
-
-Buildstmt = namedtuple('Buildstmt', '''
-        rule outputs explicit_deps implicit_deps orderonly_deps variables''')
+    @staticmethod
+    def make(
+            *,
+            rule,
+            outputs,
+            explicit_deps=None,
+            implicit_deps=None,
+            orderonly_deps=None,
+            variables=None):
+        return Buildstmt(
+            rule=rule,
+            outputs=outputs,
+            explicit_deps=explicit_deps,
+            implicit_deps=implicit_deps,
+            orderonly_deps=orderonly_deps,
+            variables=variables)

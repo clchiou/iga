@@ -47,7 +47,8 @@ class WriteOnceDict(MutableMapping):
         self._data[key] = value
 
     def __delitem__(self, key):
-        del self._data[key]
+        raise KeyError('cannot delete keys from %s (key=%r)' %
+                       (self.__class__.__name__, key))
 
     def __iter__(self):
         return iter(self._data)

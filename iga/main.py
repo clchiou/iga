@@ -1,19 +1,23 @@
+__all__ = [
+    'main',
+]
+
 import argparse
-import itertools
 import logging
+import sys
 
 import iga.label
 import iga.module
 import iga.ninja
 import iga.package
-from iga.core import ImmutableOrderedSet
 
 
 # Good for debugging
 logging.basicConfig(level=logging.DEBUG)
 
 
-def main(argv):
+def main(argv=None):
+    argv = argv or sys.argv
     parser = argparse.ArgumentParser(prog='iga')
     parser.add_argument('label')
     args = parser.parse_args(argv[1:])
@@ -30,13 +34,12 @@ def main(argv):
                     iga.package.load_package(mod_label.package)
                 modules.append(iga.module.find_module(mod_label))
         i = i + 1
-    rule_names = ImmutableOrderedSet(itertools.chain.from_iterable(
-        iga.module.find_module_type(module.type).rules for module in modules
-    ))
-    for rule_name in rule_names:
-        print(iga.ninja.find_rule(rule_name))
+    generated_rules = set()
     for module in modules:
         module_type = iga.module.find_module_type(module.type)
         for buildstmt in module_type.generate_buildstmts(module):
+            if buildstmt.rule not in generated_rules:
+                print(iga.ninja.find_rule(buildstmt.rule))
+                generated_rules.add(buildstmt.rule)
             print(buildstmt)
     return 0
