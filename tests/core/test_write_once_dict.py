@@ -13,8 +13,10 @@ class TestWriteOnceDict(unittest.TestCase):
         self.assertEqual(2, d[2])
         self.assertEqual(3, d[3])
         self.assertEqual([1, 2, 3], sorted(d))
-        self.assertRaises(TypeError, d.__setitem__, 1, 2)
-        self.assertRaises(TypeError, d.__setitem__, 2, 3)
+        self.assertRaises(KeyError, d.__setitem__, 1, 2)
+        self.assertRaises(KeyError, d.__setitem__, 2, 3)
+        self.assertRaises(KeyError, d.__delitem__, 1)
+        self.assertRaises(KeyError, d.__delitem__, 2)
 
 
 if __name__ == '__main__':
