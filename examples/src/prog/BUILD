@@ -1,7 +1,4 @@
-from iga.lang.c import c_program
-
-
-c_program(
+cc_binary(
     name = 'hello',
     deps = ['//lib:hello'],
     srcs = ['main.c'],

@@ -1,10 +1,9 @@
 import iga
 
 
-iga.project(
+iga.workspace(
     source = 'src',
     build = 'build',
-    variables = {'cflags': '-Isrc'},
 )
 
 if __name__ == '__main__':

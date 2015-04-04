@@ -1,1 +1,3 @@
 __pycache__
+examples/src/bazel-*
+examples/src/tools
