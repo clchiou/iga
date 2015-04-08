@@ -1,12 +1,12 @@
 __all__ = [
-    'Buildstmt',
-    'add_rule',
-    'find_rule',
+    'add_ninja_rule',
+    'get_ninja_rule',
 ]
 
 import logging
 from collections import namedtuple
 
+import iga.env
 from iga.core import WriteOnceDict
 from iga.error import IgaError
 
@@ -15,81 +15,31 @@ LOG = logging.getLogger(__name__)
 LOG.addHandler(logging.NullHandler())
 
 
-RULE_VARS = (
-    'command',
-    'depfile',
-    'description',
-    'generator',
-    'in',
-    'in_newline',
-    'out',
-    'restat',
-    'rspfile',
-    'rspfile_content',
-)
+NinjaRule = namedtuple('NinjaRule', 'name command variables')
 
 
-RULE_VARS_V1_3 = (
-    'deps',
-)
+# Registry of rules.
 
 
-RULE_VARS_V1_5 = (
-    'msvc_deps_prefix',
-)
+iga.env.root()[__name__] = WriteOnceDict()
 
 
-RULE_VARS_ALL = RULE_VARS + RULE_VARS_V1_3 + RULE_VARS_V1_5
+def _ninja_rules():
+    return iga.env.root()[__name__]
 
 
-RESERVED_RULE_NAMES = (
-    'phony',
-)
-
-
-_RULES = WriteOnceDict()
-
-
-def add_rule(*, name, command, **kwargs):
-    LOG.info('add rule %r', name)
-    variables = kwargs.copy()
+def add_ninja_rule(*, name, command, **kwargs):
+    LOG.info('add ninja rule %r', name)
+    variables = dict(kwargs)
     if name in RESERVED_RULE_NAMES:
         raise IgaError('cannot use %r as rule name' % name)
     for key in variables:
         if key not in RULE_VARS_ALL:
             raise IgaError('cannot use %r' % key)
-    _RULES[name] = Rule(name=name, command=command, variables=variables)
+    _ninja_rules()[name] = NinjaRule(
+        name=name, command=command, variables=variables,
+    )
 
 
-def find_rule(name):
-    return _RULES[name]
-
-
-Rule = namedtuple('Rule', 'name command variables')
-
-
-class Buildstmt(namedtuple('Buildstmt', '''
-        rule
-        outputs
-        explicit_deps
-        implicit_deps
-        orderonly_deps
-        variables
-        ''')):
-
-    @staticmethod
-    def make(
-            *,
-            rule,
-            outputs,
-            explicit_deps=None,
-            implicit_deps=None,
-            orderonly_deps=None,
-            variables=None):
-        return Buildstmt(
-            rule=rule,
-            outputs=outputs,
-            explicit_deps=explicit_deps,
-            implicit_deps=implicit_deps,
-            orderonly_deps=orderonly_deps,
-            variables=variables)
+def get_ninja_rule(name):
+    return _ninja_rules()[name]
