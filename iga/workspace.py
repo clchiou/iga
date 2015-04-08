@@ -33,8 +33,9 @@ def workspace(
     LOG.info('build = %s', build)
     rule_makers = WriteOnceDict()
     rule_makers.update(load_rule_makers())
-    for rule_maker_name in rule_makers.keys():
-        LOG.info('add rule %s', rule_maker_name)
+    if LOG.isEnabledFor(logging.INFO):
+        for rule_maker_name in rule_makers.keys():
+            LOG.info('add rule %s', rule_maker_name)
     iga.env.root().update(
         root=root,
         source=source,
