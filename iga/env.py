@@ -19,6 +19,7 @@ def _local():
     global _LOCAL
     if _LOCAL is None:
         _LOCAL = threading.local()
+    if not hasattr(_LOCAL, 'current'):
         _LOCAL.current = root()
     return _LOCAL
 

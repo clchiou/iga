@@ -7,6 +7,7 @@ from pathlib import Path
 
 import iga.env
 import iga.path
+from iga.core import WriteOnceDict
 from iga.error import IgaError
 
 
@@ -30,8 +31,18 @@ def workspace(
         raise IgaError('"source" is not a dir: %s' % source)
     build = Path(root, build)
     LOG.info('build = %s', build)
+    rule_makers = WriteOnceDict()
+    rule_makers.update(load_rule_makers())
+    for rule_maker_name in rule_makers.keys():
+        LOG.info('add rule %s', rule_maker_name)
     iga.env.root().update(
         root=root,
         source=source,
         build=build,
+        rule_makers=rule_makers,
     )
+
+
+def load_rule_makers():
+    # TODO...
+    return {}
