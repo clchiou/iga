@@ -1,6 +1,7 @@
 """File path utilities."""
 
 __all__ = [
+    'PathGlob',
     'get_caller_path',
 ]
 
@@ -8,6 +9,9 @@ import inspect
 from pathlib import Path
 
 from iga.error import IgaError
+
+
+class PathGlob: pass
 
 
 def get_caller_path(ancestor):
