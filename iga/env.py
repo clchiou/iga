@@ -1,13 +1,22 @@
 __all__ = [
     'current',
-    'root',
     'enter_child_env',
+    'root',
+
+    # Global registry.
+    'register',
+    'find',
 ]
 
 import contextlib
+import logging
 from collections import ChainMap
 
 from iga.core import WriteOnceDict
+
+
+LOG = logging.getLogger(__name__)
+LOG.addHandler(logging.NullHandler())
 
 
 _ROOT = ChainMap(WriteOnceDict())
@@ -33,3 +42,14 @@ def enter_child_env():
 def root():
     """Return the singleton root env object."""
     return _ROOT
+
+
+def register(entity):
+    LOG.info('add %s %r', entity.kind, entity.name)
+    if entity.kind not in root():
+        root()[entity.kind] = WriteOnceDict()
+    root()[entity.kind][entity.name] = entity
+
+
+def find(kind, name):
+    return root()[kind][name]
