@@ -1,45 +1,52 @@
 __all__ = [
-    'add_ninja_rule',
-    'get_ninja_rule',
+    'NinjaRule',
 ]
 
-import logging
 from collections import namedtuple
 
-import iga.env
-from iga.core import WriteOnceDict
-from iga.error import IgaError
+from iga.preconditions import check
 
 
-LOG = logging.getLogger(__name__)
-LOG.addHandler(logging.NullHandler())
+RULE_VARS_1_0 = (
+    'command',
+    'depfile',
+    'description',
+    'generator',
+    'in',
+    'in_newline',
+    'out',
+    'restat',
+    'rspfile',
+    'rspfile_content',
+)
 
 
-NinjaRule = namedtuple('NinjaRule', 'name command variables')
+RULE_VARS_1_3 = (
+    'deps',
+)
 
 
-# Registry of rules.
+RULE_VARS_1_5 = (
+    'msvc_deps_prefix',
+)
 
 
-iga.env.root()[__name__] = WriteOnceDict()
+RULE_VARS = RULE_VARS_1_0 + RULE_VARS_1_3 + RULE_VARS_1_5
 
 
-def _ninja_rules():
-    return iga.env.root()[__name__]
+RESERVED_RULE_NAMES = (
+    'phony',
+)
 
 
-def add_ninja_rule(*, name, command, **kwargs):
-    LOG.info('add ninja rule %r', name)
-    variables = dict(kwargs)
-    if name in RESERVED_RULE_NAMES:
-        raise IgaError('cannot use %r as rule name' % name)
-    for key in variables:
-        if key not in RULE_VARS_ALL:
-            raise IgaError('cannot use %r' % key)
-    _ninja_rules()[name] = NinjaRule(
-        name=name, command=command, variables=variables,
-    )
+class NinjaRule(namedtuple('NinjaRule', 'name command variables')):
 
+    kind = __name__ + '.NinjaRule'
 
-def get_ninja_rule(name):
-    return _ninja_rules()[name]
+    @staticmethod
+    def make(name, command, **kwargs):
+        check(name in RESERVED_RULE_NAMES, 'cannot use %r as rule name', name)
+        variables = dict(kwargs)
+        for key in variables:
+            check(key in RULE_VARS, 'cannot use %r', key)
+        return NinjaRule(name=name, command=command, variables=variables)
