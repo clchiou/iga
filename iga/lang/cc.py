@@ -4,8 +4,7 @@ __all__ = [
     'init_cc',
 ]
 
-import iga.env
-from iga.argmatch import Oneof
+from iga.matcher import oneof
 from iga.label import Label
 from iga.ninja import NinjaRule
 from iga.path import PathGlob
@@ -27,42 +26,42 @@ CC_SUFFIXES = CC_SOURCE_SUFFIXES + CC_HEADER_SUFFIXES
 
 def init_cc():
     """Init C/C++ build rules."""
-    iga.env.register(NinjaRule.make(
+    NinjaRule.register(NinjaRule.make(
         name=CC_COMPILE,
         command='$cc $cflags -c $in -o $out',
         description='CC $out',
     ))
-    iga.env.register(NinjaRule.make(
+    NinjaRule.register(NinjaRule.make(
         name=CC_LIBRARY,
         command='rm -f $out && $ar crs $out $in',
         description='AR $out',
     ))
-    iga.env.register(NinjaRule.make(
+    NinjaRule.register(NinjaRule.make(
         name=CC_BINARY,
         command='$cc $ldflags -o $out $in $libs',
         description='LINK $out',
     ))
 
-    iga.env.register(RuleType.make(
+    RuleType.register(RuleType.make(
         name=CC_LIBRARY,
         input_types=[CC_LIBRARY, CC_SOURCE],
         output_types=[CC_LIBRARY],
         #generate_buildstmts=generate_library,
     ))
-    iga.env.register(RuleType.make(
+    RuleType.register(RuleType.make(
         name=CC_BINARY,
         input_types=[CC_LIBRARY, CC_SOURCE],
         output_types=[CC_BINARY],
         #generate_buildstmts=generate_binary,
     ))
 
-    iga.env.register(RuleFunc.make(cc_binary))
-    iga.env.register(RuleFunc.make(cc_library))
+    RuleFunc.register(RuleFunc.make(cc_binary))
+    RuleFunc.register(RuleFunc.make(cc_library))
 
 
 def cc_library(
         name: Label,
-        srcs: [Oneof(Label, PathGlob)]=(),
+        srcs: [oneof(Label, PathGlob)]=(),
         deps: [Label]=()):
     return RuleData.make(
         type=CC_LIBRARY,
@@ -82,7 +81,7 @@ def cc_library(
 
 def cc_binary(
         name: Label,
-        srcs: [Oneof(Label, PathGlob)]=(),
+        srcs: [oneof(Label, PathGlob)]=(),
         deps: [Label]=()):
     return RuleData.make(
         type=CC_BINARY,
