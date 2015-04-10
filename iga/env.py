@@ -2,10 +2,6 @@ __all__ = [
     'current',
     'enter_child_env',
     'root',
-
-    # Global registry.
-    'register',
-    'find',
 ]
 
 import contextlib
@@ -42,14 +38,3 @@ def enter_child_env():
 def root():
     """Return the singleton root env object."""
     return _ROOT
-
-
-def register(entity):
-    LOG.info('add %s %r', entity.kind, entity.name)
-    if entity.kind not in root():
-        root()[entity.kind] = WriteOnceDict()
-    root()[entity.kind][entity.name] = entity
-
-
-def find(kind, name):
-    return root()[kind][name]
