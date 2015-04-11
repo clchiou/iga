@@ -16,7 +16,7 @@ class Bar(Foo, RegistryMixin):
 
 class TestRegistry(unittest.TestCase):
 
-    def setUp(self):
+    def tearDown(self):
         iga.registry.reset()
 
     def test_registry(self):
