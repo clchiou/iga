@@ -64,7 +64,7 @@ def cc_library(
         srcs: [oneof(Label, PathGlob)]=(),
         deps: [Label]=()):
     return RuleData.make(
-        type=CC_LIBRARY,
+        rule_type=CC_LIBRARY,
         name=name,
         inputs={
             CC_LIBRARY: deps,
@@ -84,7 +84,7 @@ def cc_binary(
         srcs: [oneof(Label, PathGlob)]=(),
         deps: [Label]=()):
     return RuleData.make(
-        type=CC_BINARY,
+        rule_type=CC_BINARY,
         name=name,
         inputs={
             CC_LIBRARY: deps,

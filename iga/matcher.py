@@ -8,7 +8,6 @@ __all__ = [
 
 import inspect
 from abc import ABCMeta, abstractmethod
-from collections import namedtuple
 
 from iga.core import WriteOnceDict
 from iga.registry import RegistryMixin
@@ -33,7 +32,7 @@ class Matcher(RegistryMixin, metaclass=ABCMeta):
         raise NotImplementedError
 
 
-class KwargsMatcher(Matcher, namedtuple('KwargsMatcher', 'matchers')):
+class KwargsMatcher(Matcher):
 
     @staticmethod
     def parse(func, get_matcher=None):
@@ -44,6 +43,9 @@ class KwargsMatcher(Matcher, namedtuple('KwargsMatcher', 'matchers')):
             if par.annotation is not par.empty:
                 matchers[par.name] = _parse(par.annotation, get_matcher)
         return KwargsMatcher(matchers)
+
+    def __init__(self, matchers):
+        self.matchers = matchers
 
     def match(self, kwargs):
         matched_kwargs = {}
@@ -66,7 +68,7 @@ def _parse(anno, get_matcher):
         return get_matcher(anno)
 
 
-class ListOf(Matcher, namedtuple('ListOf', 'matcher')):
+class ListOf(Matcher):
 
     @staticmethod
     def make(klass_or_matcher, get_matcher=None):
@@ -77,11 +79,14 @@ class ListOf(Matcher, namedtuple('ListOf', 'matcher')):
             matcher = get_matcher(klass_or_matcher)
         return ListOf(matcher)
 
+    def __init__(self, matcher):
+        self.matcher = matcher
+
     def match(self, values):
         return [self.matcher.match(value) for value in values]
 
 
-class OneOf(Matcher, namedtuple('OneOf', 'matchers')):
+class OneOf(Matcher):
 
     @staticmethod
     def make(*klasses_or_matchers, get_matcher=None):
@@ -94,6 +99,9 @@ class OneOf(Matcher, namedtuple('OneOf', 'matchers')):
                 matcher = get_matcher(klass_or_matcher)
             matchers.append(matcher)
         return OneOf(matchers)
+
+    def __init__(self, matchers):
+        self.matchers = matchers
 
     def match(self, value):
         for matcher in self.matchers:
@@ -113,10 +121,7 @@ class Any(Matcher):
 ANY = Any()
 
 
-class CustomMatcher(
-        Matcher,
-        namedtuple('CustomMatcher', 'klass match_func'),
-        RegistryMixin):
+class CustomMatcher(Matcher, RegistryMixin):
 
     @staticmethod
     def get_matcher(klass):
@@ -124,6 +129,10 @@ class CustomMatcher(
             return CustomMatcher.get_object(_make_name(klass))
         except KeyError:
             return ANY
+
+    def __init__(self, klass, match_func):
+        self.klass = klass
+        self.match_func = match_func
 
     @property
     def name(self):

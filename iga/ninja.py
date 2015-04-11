@@ -2,8 +2,6 @@ __all__ = [
     'NinjaRule',
 ]
 
-from collections import namedtuple
-
 from iga.preconditions import check
 from iga.registry import RegistryMixin
 
@@ -39,8 +37,7 @@ RESERVED_RULE_NAMES = (
 )
 
 
-class NinjaRule(namedtuple('NinjaRule', 'name command variables'),
-                RegistryMixin):
+class NinjaRule(RegistryMixin):
 
     @staticmethod
     def make(name, command, **kwargs):
@@ -49,3 +46,8 @@ class NinjaRule(namedtuple('NinjaRule', 'name command variables'),
         for key in variables:
             check(key in RULE_VARS, 'cannot use %r', key)
         return NinjaRule(name=name, command=command, variables=variables)
+
+    def __init__(self, name, command, variables):
+        self.name = name
+        self.command = command
+        self.variables = variables
