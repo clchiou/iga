@@ -5,7 +5,6 @@ __all__ = [
     'ImmutableOrderedSet',
     'WriteOnceBimap',
     'WriteOnceDict',
-    'asdict',
 ]
 
 from collections import OrderedDict
@@ -13,8 +12,6 @@ from collections import MutableMapping
 from collections import Set
 
 
-def asdict(**kwargs):
-    return kwargs.copy()
 
 
 def _repr(obj, data):
