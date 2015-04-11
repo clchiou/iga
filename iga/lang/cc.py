@@ -4,7 +4,7 @@ __all__ = [
     'init_cc',
 ]
 
-from iga.matcher import oneof
+from iga.fargparse import oneof
 from iga.label import Label
 from iga.ninja import NinjaRule
 from iga.path import PathGlob

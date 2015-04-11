@@ -7,7 +7,7 @@ __all__ = [
 
 import logging
 
-from iga.matcher import KwargsMatcher
+from iga.fargparse import FuncArgsParser
 from iga.registry import RegistryMixin
 
 
@@ -36,25 +36,25 @@ class RuleFunc(RegistryMixin):
 
     @staticmethod
     def make(rule_func):
-        kwargs_matcher = KwargsMatcher.parse(rule_func)
+        parser = FuncArgsParser.make(rule_func)
         return RuleFunc(
             name=rule_func.__name__,
             rule_func=rule_func,
-            kwargs_matcher=kwargs_matcher,
+            parser=parser,
         )
 
     def __init__(self,
                  name,
                  rule_func,
-                 kwargs_matcher):
+                 parser):
         self.name = self.name
         self.rule_func = rule_func
-        self.kwargs_matcher = kwargs_matcher
+        self.parser = parser
 
-    def __call__(self, **kwargs):
-        matched_kwargs, ignored = self.kwargs_matcher.match(kwargs)
+    def __call__(self, *args, **kwargs):
+        args, kwargs, ignored = self.parser.parse((args, kwargs))
         LOG.debug('%s ignores %r', self.name, ignored)
-        return self.rule_func(**matched_kwargs)
+        return self.rule_func(*args, **kwargs)
 
 
 class RuleData(RegistryMixin):
