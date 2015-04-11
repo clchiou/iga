@@ -7,7 +7,7 @@ __all__ = [
 from iga.fargparse import oneof
 from iga.label import Label
 from iga.ninja import NinjaRule
-from iga.path import PathGlob
+from iga.path import Glob
 from iga.rule import RuleData
 from iga.rule import RuleFunc
 from iga.rule import RuleType
@@ -61,7 +61,7 @@ def init_cc():
 
 def cc_library(
         name: Label,
-        srcs: [oneof(Label, PathGlob)]=(),
+        srcs: [oneof(Label, Glob)]=(),
         deps: [Label]=()):
     return RuleData.make(
         rule_type=CC_LIBRARY,
@@ -81,7 +81,7 @@ def cc_library(
 
 def cc_binary(
         name: Label,
-        srcs: [oneof(Label, PathGlob)]=(),
+        srcs: [oneof(Label, Glob)]=(),
         deps: [Label]=()):
     return RuleData.make(
         rule_type=CC_BINARY,
