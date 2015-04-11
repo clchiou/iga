@@ -4,6 +4,7 @@ __all__ = [
     'init_cc',
 ]
 
+from iga.core import group
 from iga.fargparse import oneof
 from iga.label import Label
 from iga.ninja import NinjaRule
@@ -63,6 +64,7 @@ def cc_library(
         name: Label,
         srcs: [oneof(Label, Glob)]=(),
         deps: [Label]=()):
+    srcs = group(srcs, key=type)
     return RuleData.make(
         rule_type=CC_LIBRARY,
         name=name,
@@ -71,7 +73,7 @@ def cc_library(
             CC_SOURCE: srcs[Label],
         },
         inputs_patterns={
-            CC_SOURCE: srcs[PathGlob],
+            CC_SOURCE: srcs[Glob],
         },
         outputs={
             CC_LIBRARY: [name.with_name(to_libname(name.name))],
@@ -83,6 +85,7 @@ def cc_binary(
         name: Label,
         srcs: [oneof(Label, Glob)]=(),
         deps: [Label]=()):
+    srcs = group(srcs, key=type)
     return RuleData.make(
         rule_type=CC_BINARY,
         name=name,
@@ -91,7 +94,7 @@ def cc_binary(
             CC_SOURCE: srcs[Label],
         },
         inputs_patterns={
-            CC_SOURCE: srcs[PathGlob],
+            CC_SOURCE: srcs[Glob],
         },
         outputs={
             CC_BINARY: [name],

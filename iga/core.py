@@ -5,13 +5,22 @@ __all__ = [
     'ImmutableOrderedSet',
     'WriteOnceBimap',
     'WriteOnceDict',
+    'group',
 ]
 
 from collections import OrderedDict
 from collections import MutableMapping
 from collections import Set
+from collections import defaultdict
 
 
+def group(items, key=None):
+    """Group items by applying key function."""
+    key = key or (lambda item: item)
+    groups = defaultdict(list)
+    for item in items:
+        groups[key(item)].append(item)
+    return dict(groups)
 
 
 def _repr(obj, data):
