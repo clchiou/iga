@@ -5,6 +5,7 @@ __all__ = [
 ]
 
 from collections import namedtuple
+from pathlib import PurePosixPath
 
 import iga.env
 import iga.fargparse
@@ -42,7 +43,10 @@ class Label(namedtuple('Label', 'package target')):
         if not target:
             raise IgaError('cannot parse target part from %r' % label_string)
 
-        return Label(package=package, target=target)
+        return Label(
+            package=PurePosixPath(package),
+            target=PurePosixPath(target),
+        )
 
     @staticmethod
     def parse_cmdline(label_string):
@@ -55,6 +59,13 @@ class Label(namedtuple('Label', 'package target')):
     def parse_buildfile(label_string):
         """Parse label string within BUILD file evaluation environment."""
         return Label.parse(label_string, iga.env.current()['package'])
+
+    @property
+    def name(self):
+        return self.target.name
+
+    def with_name(self, name):
+        return Label(self.package, self.target.with_name(name))
 
 
 iga.fargparse.Parser.register_parse_func(Label, Label.parse_buildfile)

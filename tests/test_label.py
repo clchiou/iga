@@ -1,6 +1,5 @@
-import os
-import os.path
 import unittest
+from pathlib import PurePosixPath
 
 from iga.error import IgaError
 from iga.label import Label
@@ -10,12 +9,13 @@ class TestLabel(unittest.TestCase):
 
     def test_parse(self):
         package = 'a/b/c'
+
         self.assertEqual(
-            Label(package, 'd/e/f'),
+            make_label(package, 'd/e/f'),
             Label.parse('d/e/f', package),
         )
         self.assertEqual(
-            Label('x/y/z', 'd/e/f'),
+            make_label('x/y/z', 'd/e/f'),
             Label.parse('//x/y/z:d/e/f', package),
         )
 
@@ -28,10 +28,12 @@ class TestLabel(unittest.TestCase):
         ]
         for label in test_labels:
             self.assertEqual(
-                Label(package, 'c'),
+                make_label(package, 'c'),
                 Label.parse(label, package),
             )
 
+    def test_error(self):
+        package = 'a/b/c'
         illegal_labels = [
             '',
             ':',
@@ -40,8 +42,11 @@ class TestLabel(unittest.TestCase):
             '//:xyz',
         ]
         for label in illegal_labels:
-            self.assertRaises(
-                IgaError, Label.parse, label, package)
+            self.assertRaises(IgaError, Label.parse, label, package)
+
+
+def make_label(package, target):
+    return Label(PurePosixPath(package), PurePosixPath(target))
 
 
 if __name__ == '__main__':
