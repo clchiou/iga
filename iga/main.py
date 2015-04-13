@@ -7,23 +7,27 @@ import itertools
 import logging
 import sys
 
-import iga.env
-import iga.rule
+import iga.package
 from iga.core import ImmutableOrderedSet
 from iga.label import Label
-
 
 # Good for debugging
 logging.basicConfig(level=logging.DEBUG)
 
 
+def init():
+    from iga.lang import cc
+    cc.init()
+
+
 def main(argv=None):
     argv = argv or sys.argv
+    init()
     parser = argparse.ArgumentParser(prog='iga')
     parser.add_argument('label')
     args = parser.parse_args(argv[1:])
     label = Label.parse_cmdline(args.label)
-    queue = [iga.rule.get_rule(label)]
+    queue = [iga.package.get_rule(label)]
     with open('build.ninja', 'w') as ninja_file:
         while queue:
             rule = queue.pop(0)
@@ -34,4 +38,4 @@ def main(argv=None):
 
 def generate_input_rules(rule):
     for label in itertools.chain.from_iterable(rule.inputs.values()):
-        yield iga.rule.get_rule(label)
+        yield iga.package.get_rule(label)

@@ -1,7 +1,7 @@
 """Build rules for C/C++."""
 
 __all__ = [
-    'init_cc',
+    'init',
 ]
 
 from iga.core import group
@@ -25,7 +25,7 @@ CC_HEADER_SUFFIXES = ('.h', '.hh', '.hpp', '.hxx', '.inc')
 CC_SUFFIXES = CC_SOURCE_SUFFIXES + CC_HEADER_SUFFIXES
 
 
-def init_cc():
+def init():
     """Init C/C++ build rules."""
     NinjaRule.register(NinjaRule.make(
         name=CC_COMPILE,
@@ -47,13 +47,13 @@ def init_cc():
         name=CC_LIBRARY,
         input_types=[CC_LIBRARY, CC_SOURCE],
         output_types=[CC_LIBRARY],
-        #generate_buildstmts=generate_library,
+        generate_buildstmts=generate_library,
     ))
     RuleType.register(RuleType.make(
         name=CC_BINARY,
         input_types=[CC_LIBRARY, CC_SOURCE],
         output_types=[CC_BINARY],
-        #generate_buildstmts=generate_binary,
+        generate_buildstmts=generate_binary,
     ))
 
     RuleFunc.register(RuleFunc.make(cc_binary))
@@ -72,7 +72,7 @@ def cc_library(
             CC_LIBRARY: deps,
             CC_SOURCE: srcs[Label],
         },
-        inputs_patterns={
+        input_patterns={
             CC_SOURCE: srcs[Glob],
         },
         outputs={
@@ -93,13 +93,21 @@ def cc_binary(
             CC_LIBRARY: deps,
             CC_SOURCE: srcs[Label],
         },
-        inputs_patterns={
+        input_patterns={
             CC_SOURCE: srcs[Glob],
         },
         outputs={
             CC_BINARY: [name],
         },
     )
+
+
+def generate_binary():
+    pass
+
+
+def generate_library():
+    pass
 
 
 def to_libname(name):
