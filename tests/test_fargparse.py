@@ -15,6 +15,7 @@ def parse_int(value):
 class TestFuncArgsParser(unittest.TestCase):
 
     def setUp(self):
+        iga.registry.reset()
         Parser.register_parse_func(int, parse_int)
         Parser.register_parse_func(str, str)
 
