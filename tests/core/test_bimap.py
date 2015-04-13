@@ -27,16 +27,19 @@ class TestBimap(unittest.TestCase):
         self.assertEqual({1: 'a', 2: 'b', 4: 'c'}, bimap.inverse())
 
     def test_error(self):
-        self.assertRaises(KeyError, Bimap, [(1, 1), (2, 1)])
+        bimap = Bimap()
+        self.assertRaises(KeyError, bimap.update, [(1, 1), (2, 1)])
 
-        bimap = Bimap({1: 'b', 2: 'a'})
+        bimap = Bimap()
+        bimap.update({1: 'b', 2: 'a'})
         self.assertRaises(KeyError, bimap.__setitem__, 3, 'a')
 
         self.assertEqual({1: 'b', 2: 'a'}, bimap)
         self.assertEqual({'a': 2, 'b': 1}, bimap.inverse())
 
     def test_write_once_bimap(self):
-        wobimap = WriteOnceBimap({'a': 1})
+        wobimap = WriteOnceBimap()
+        wobimap.update({'a': 1})
         self.assertEqual({'a': 1}, wobimap)
         self.assertEqual({1: 'a'}, wobimap.inverse())
         self.assertRaises(KeyError, wobimap.__setitem__, 'a', 2)

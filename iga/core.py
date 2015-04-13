@@ -56,11 +56,8 @@ class ImmutableOrderedSet(Set):
 class WriteOnceDict(MutableMapping):
     """A dict that does not allow overwriting keys."""
 
-    def __init__(self, iterable=None):
-        if iterable:
-            self._data = dict(iterable)
-        else:
-            self._data = {}
+    def __init__(self):
+        self._data = {}
 
     def __getitem__(self, key):
         return self._data[key]
@@ -90,18 +87,9 @@ class WriteOnceDict(MutableMapping):
 class Bimap(MutableMapping):
     """A dict that also allows look up by value."""
 
-    def __init__(self, iterable=None,
-                 *, _key_to_value=None, _value_to_key=None):
-        if iterable:
-            self._key_to_value = dict(iterable)
-            self._value_to_key = {
-                value: key for key, value in self._key_to_value.items()
-            }
-            if len(self._key_to_value) != len(self._value_to_key):
-                raise KeyError('duplicated values in %r' % self._key_to_value)
-        else:
-            self._key_to_value = _key_to_value or {}
-            self._value_to_key = _value_to_key or {}
+    def __init__(self, *, _key_to_value=None, _value_to_key=None):
+        self._key_to_value = _key_to_value or {}
+        self._value_to_key = _value_to_key or {}
 
     def inverse(self):
         return Bimap(_key_to_value=dict(self._value_to_key),
@@ -142,11 +130,8 @@ class Bimap(MutableMapping):
 
 class WriteOnceBimap(MutableMapping):
 
-    def __init__(self, iterable=None, *, _bimap=None):
-        if iterable:
-            self._bimap = Bimap(iterable)
-        else:
-            self._bimap = _bimap or Bimap()
+    def __init__(self, *, _bimap=None):
+        self._bimap = _bimap or Bimap()
 
     def inverse(self):
         return WriteOnceBimap(_bimap=self._bimap.inverse())

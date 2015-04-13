@@ -6,7 +6,8 @@ from iga.core import WriteOnceDict
 class TestWriteOnceDict(unittest.TestCase):
 
     def test_write_once(self):
-        d = WriteOnceDict([(1, 1), (2, 2)])
+        d = WriteOnceDict()
+        d.update([(1, 1), (2, 2)])
         d[3] = 3
         self.assertEqual(3, len(d))
         self.assertEqual(1, d[1])
