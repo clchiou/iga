@@ -67,7 +67,7 @@ class WriteOnceDict(MutableMapping):
 
     def __setitem__(self, key, value):
         if key in self._data:
-            raise KeyError('cannot overwrite key %r' % key)
+            raise KeyError('cannot overwrite key %r' % (key,))
         self._data[key] = value
 
     def __delitem__(self, key):
@@ -159,7 +159,7 @@ class WriteOnceBimap(MutableMapping):
 
     def __setitem__(self, key, value):
         if key in self:
-            raise KeyError('cannot overwrite key %r' % key)
+            raise KeyError('cannot overwrite key %r' % (key,))
         self._bimap[key] = value
 
     def __delitem__(self, key):
