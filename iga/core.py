@@ -14,13 +14,15 @@ from collections import Set
 from collections import defaultdict
 
 
-def group(items, key=None):
+def group(items, key=None, as_dict=True):
     """Group items by applying key function."""
     key = key or (lambda item: item)
     groups = defaultdict(list)
     for item in items:
         groups[key(item)].append(item)
-    return dict(groups)
+    if as_dict:
+        groups = dict(groups)
+    return groups
 
 
 def _repr(obj, data):

@@ -64,7 +64,7 @@ def cc_library(
         name: Label,
         srcs: [oneof(Label, Glob)]=(),
         deps: [Label]=()):
-    srcs = group(srcs, key=type)
+    srcs = group(srcs, key=type, as_dict=False)
     return RuleData.make(
         rule_type=CC_LIBRARY,
         name=name,
@@ -85,7 +85,7 @@ def cc_binary(
         name: Label,
         srcs: [oneof(Label, Glob)]=(),
         deps: [Label]=()):
-    srcs = group(srcs, key=type)
+    srcs = group(srcs, key=type, as_dict=False)
     return RuleData.make(
         rule_type=CC_BINARY,
         name=name,
