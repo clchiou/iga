@@ -3,20 +3,20 @@ import os.path
 import unittest
 
 from iga.error import IgaError
-from iga.label import ModuleLabel
+from iga.label import Label
 
 
-class TestModuleLabel(unittest.TestCase):
+class TestLabel(unittest.TestCase):
 
     def test_parse(self):
         package = 'a/b/c'
         self.assertEqual(
-            ModuleLabel(package, 'd/e/f'),
-            ModuleLabel.parse('d/e/f', package=package),
+            Label(package, 'd/e/f'),
+            Label.parse('d/e/f', package),
         )
         self.assertEqual(
-            ModuleLabel('x/y/z', 'd/e/f'),
-            ModuleLabel.parse('//x/y/z:d/e/f', package=package),
+            Label('x/y/z', 'd/e/f'),
+            Label.parse('//x/y/z:d/e/f', package),
         )
 
         test_labels = [
@@ -28,8 +28,8 @@ class TestModuleLabel(unittest.TestCase):
         ]
         for label in test_labels:
             self.assertEqual(
-                ModuleLabel(package, 'c'),
-                ModuleLabel.parse(label, package=package),
+                Label(package, 'c'),
+                Label.parse(label, package),
             )
 
         illegal_labels = [
@@ -41,7 +41,7 @@ class TestModuleLabel(unittest.TestCase):
         ]
         for label in illegal_labels:
             self.assertRaises(
-                IgaError, ModuleLabel.parse, label, package=package)
+                IgaError, Label.parse, label, package)
 
 
 if __name__ == '__main__':

@@ -8,9 +8,9 @@ import logging
 import sys
 
 import iga.env
-import iga.label
 import iga.rule
 from iga.core import ImmutableOrderedSet
+from iga.label import Label
 
 
 # Good for debugging
@@ -22,7 +22,7 @@ def main(argv=None):
     parser = argparse.ArgumentParser(prog='iga')
     parser.add_argument('label')
     args = parser.parse_args(argv[1:])
-    label = iga.label.parse_label(args.label)
+    label = Label.parse_cmdline(args.label)
     queue = [iga.rule.get_rule(label)]
     with open('build.ninja', 'w') as ninja_file:
         while queue:
