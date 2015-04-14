@@ -9,10 +9,11 @@ from iga.core import list_difference
 from iga.rule import Rule
 
 
-def build_rules(package, rule_datas):
+def build_rules(package, rule_datas, _env=None):
     """Build Rule objects from a list of RuleData iteratively."""
-    srcdir = iga.env.root()['source'] / package
-    outdir = iga.env.root()['build'] / package
+    env = _env or iga.env.current()
+    srcdir = env['source'] / package
+    outdir = env['build'] / package
     rules = {rule_data.name: Rule.make(rule_data) for rule_data in rule_datas}
     # Glob inputs.
     for rule_data in rule_datas:

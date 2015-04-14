@@ -1,25 +1,19 @@
 __all__ = [
     'current',
-    'enter_child_env',
-    'root',
+    'enter',
 ]
 
 import contextlib
-import logging
 from collections import ChainMap
 
 from iga.core import WriteOnceDict
-
-
-LOG = logging.getLogger(__name__)
-LOG.addHandler(logging.NullHandler())
 
 
 _ROOT = ChainMap(WriteOnceDict())
 
 
 def current():
-    """Return the current env object."""
+    """Return the current environment object."""
     return current.current
 
 
@@ -27,14 +21,9 @@ current.current = _ROOT
 
 
 @contextlib.contextmanager
-def enter_child_env():
-    """Enter a child env context."""
+def enter():
+    """Enter a child environment context."""
     child = current.current.new_child(WriteOnceDict())
     current.current, parent = child, current.current
     yield child
     current.current = parent
-
-
-def root():
-    """Return the singleton root env object."""
-    return _ROOT

@@ -30,7 +30,7 @@ def workspace(
         raise IgaError('"source" is not a dir: %s' % source)
     build = Path(root, build)
     LOG.info('build = %s', build)
-    iga.env.root().update(
+    iga.env.current().update(
         root=root,
         source=source,
         build=build,

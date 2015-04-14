@@ -48,13 +48,13 @@ def get_rule_or_none(label):
 
 def _load_rules(package):
     """Load rules from a BUILD file."""
-    buildfile_path = iga.env.root()['source'] / package / 'BUILD'
+    buildfile_path = iga.env.current()['source'] / package / 'BUILD'
     LOG.info('load %s', buildfile_path)
     with buildfile_path.open() as buildfile:
         code = buildfile.read()
     code = compile(code, str(buildfile_path), 'exec')
     rule_data = []
-    with iga.env.enter_child_env() as child_env:
+    with iga.env.enter() as child_env:
         child_env['package'] = package
         child_env['rule_data'] = rule_data
         exec(code, _make_context())
