@@ -28,14 +28,20 @@ def main(argv=None):
     args = parser.parse_args(argv[1:])
     label = Label.parse_cmdline(args.label)
     queue = [iga.package.get_rule(label)]
+    rule_names = set()
     with open('build.ninja', 'w') as ninja_file:
         while queue:
             rule = queue.pop(0)
+            if rule.name in rule_names:
+                continue
             rule.write_to(ninja_file)
             queue.extend(ImmutableOrderedSet(generate_input_rules(rule)))
+            rule_names.add(rule.name)
     return 0
 
 
 def generate_input_rules(rule):
     for label in itertools.chain.from_iterable(rule.inputs.values()):
-        yield iga.package.get_rule(label)
+        rule = iga.package.get_rule_or_none(label)
+        if rule is not None:
+            yield rule

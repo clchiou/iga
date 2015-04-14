@@ -3,7 +3,6 @@ __all__ = [
     'RuleData',
     'RuleFunc',
     'RuleType',
-    'build_rules',
 ]
 
 import logging
@@ -19,45 +18,28 @@ LOG = logging.getLogger(__name__)
 LOG.addHandler(logging.NullHandler())
 
 
-def build_rules(package, rule_data):
-    """Build Rule objects from a list of RuleData iteratively."""
-    srcdir_path = iga.env.root()['source'] / package
-    outdir_path = iga.env.root()['build'] / package
-    rules = {rd.name: Rule.make(rd) for rd in rule_data}
-    while True:
-        # TODO...
-        changed = False
-        for rd in rule_data:
-            if not rd.input_patterns:
-                continue
-            rule = rules[rd.name]
-            for input_type in rule.inputs:
-                inputs = rule.inputs[input_type]
-                num_inputs = len(inputs)
-                for pattern in rd.input_patterns.get(input_type, ()):
-                    inputs.extend(pattern.glob(srcdir_path))
-                if num_inputs < len(inputs):
-                    changed = True
-        if not changed:
-            break
-    return [rules[rd.name] for rd in rule_data]
-
-
 class RuleType(RegistryMixin):
 
     @staticmethod
     def make(**kwargs):
+        kwargs.setdefault('generate_outputs', _gen_no_outputs)
         return RuleType(**kwargs)
 
     def __init__(self,
                  name,
                  input_types,
                  output_types,
+                 generate_outputs,
                  generate_buildstmts):
         self.name = name
         self.input_types = input_types
         self.output_types = output_types
+        self.generate_outputs = generate_outputs
         self.generate_buildstmts = generate_buildstmts
+
+
+def _gen_no_outputs(_):
+    return {}
 
 
 class RuleFunc(RegistryMixin):

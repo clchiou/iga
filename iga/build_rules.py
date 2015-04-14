@@ -1,0 +1,80 @@
+__all__ = [
+    'build_rules',
+]
+
+from collections import defaultdict
+
+import iga.env
+from iga.core import list_difference
+from iga.rule import Rule
+
+
+def build_rules(package, rule_datas):
+    """Build Rule objects from a list of RuleData iteratively."""
+    srcdir = iga.env.root()['source'] / package
+    outdir = iga.env.root()['build'] / package
+    rules = {rule_data.name: Rule.make(rule_data) for rule_data in rule_datas}
+    # Glob inputs.
+    for rule_data in rule_datas:
+        rule = rules[rule_data.name]
+        _glob_inputs(rule_data, srcdir, rule)
+    # Generate outputs from current inputs.
+    added_pathsets_by_type = defaultdict(set)
+    for rule in rules.values():
+        _update_pathsets(
+            added_pathsets_by_type, _gen_outputs(rule.inputs, rule)
+        )
+    # Iteratively update inputs and outputs.
+    while added_pathsets_by_type:
+        paths_by_type = {
+            path_type: sorted(pathset)
+            for path_type, pathset in added_pathsets_by_type.items()
+        }
+        added_pathsets_by_type = defaultdict(set)
+        for rule_data in rule_datas:
+            rule = rules[rule_data.name]
+            _update_pathsets(
+                added_pathsets_by_type,
+                _match_inputs(rule_data, paths_by_type, outdir, rule),
+            )
+    return [rules[rule_data.name] for rule_data in rule_datas]
+
+
+def _glob_inputs(rule_data, srcdir, rule):
+    for input_type in rule.inputs:
+        inputs = set()
+        for pattern in rule_data.input_patterns.get(input_type, ()):
+            inputs.update(pattern.glob(srcdir))
+        inputs = sorted(inputs)
+        adding = list_difference(inputs, rule.inputs[input_type])
+        rule.inputs[input_type].extend(adding)
+
+
+def _match_inputs(rule_data, paths_by_type, outdir, rule):
+    added_pathset_by_type = defaultdict(set)
+    for input_type in rule.inputs:
+        inputs = set()
+        for pattern in rule_data.input_patterns.get(input_type, ()):
+            inputs.update(
+                filter(pattern.match, paths_by_type.get(input_type, ()))
+            )
+        inputs = sorted(outdir / path for path in inputs)
+        adding = list_difference(inputs, rule.inputs[input_type])
+        rule.inputs.extend(adding)
+        added_pathset_by_type[input_type].update(adding)
+    return added_pathset_by_type
+
+
+def _gen_outputs(inputs_by_type, rule):
+    added_pathset_by_type = defaultdict(set)
+    outputs_by_type = rule.rule_type.generate_outputs(inputs_by_type)
+    for output_type, outputs in outputs_by_type.items():
+        adding = list_difference(outputs, rule.outputs[output_type])
+        rule.outputs[output_type].extend(adding)
+        added_pathset_by_type[output_type].update(adding)
+    return added_pathset_by_type
+
+
+def _update_pathsets(pathsets_by_type, more_pathsets_by_type):
+    for path_type, pathset in more_pathsets_by_type.items():
+        pathsets_by_type[path_type].update(pathset)
