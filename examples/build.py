@@ -1,10 +1,10 @@
-import iga
+from iga.main import main
+from iga.workspace import workspace
 
 
-iga.workspace(
+workspace(
     source = 'src',
-    build = 'build',
 )
 
 if __name__ == '__main__':
-    iga.main()
+    main()

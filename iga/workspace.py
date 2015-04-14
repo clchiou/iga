@@ -3,7 +3,6 @@ __all__ = [
 ]
 
 import logging
-from pathlib import Path
 
 import iga.env
 import iga.path
@@ -24,11 +23,11 @@ def workspace(
     LOG.info('root = %s', root)
     if not root.is_dir():
         raise IgaError('"root" is not a dir: %s' % root)
-    source = Path(root, source)
+    source = root / source
     LOG.info('source = %s', source)
     if not source.is_dir():
         raise IgaError('"source" is not a dir: %s' % source)
-    build = Path(root, build)
+    build = root / build
     LOG.info('build = %s', build)
     iga.env.current().update(
         root=root,

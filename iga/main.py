@@ -6,8 +6,11 @@ import argparse
 import itertools
 import logging
 import sys
+from pathlib import Path
 
+import iga.env
 import iga.package
+import iga.workspace
 from iga.core import ImmutableOrderedSet
 from iga.label import Label
 
@@ -26,6 +29,8 @@ def main(argv=None):
     parser = argparse.ArgumentParser(prog='iga')
     parser.add_argument('label')
     args = parser.parse_args(argv[1:])
+    if 'root' not in iga.env.current():
+        iga.workspace.workspace(root=Path.cwd())
     label = Label.parse_cmdline(args.label)
     queue = [iga.package.get_rule(label)]
     rule_names = set()
