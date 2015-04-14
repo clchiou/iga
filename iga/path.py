@@ -21,8 +21,8 @@ class Glob:
     def match(self, path):
         return path.match(self.pattern)
 
-    def glob(self, from_path):
-        yield from from_path.glob(self.pattern)
+    def glob(self, path):
+        yield from path.glob(self.pattern)
 
 
 iga.fargparse.Parser.register_parse_func(Glob, Glob)
