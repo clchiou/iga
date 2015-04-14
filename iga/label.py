@@ -58,7 +58,12 @@ class Label(namedtuple('Label', 'package target')):
     @staticmethod
     def parse_buildfile(label_string):
         """Parse label string within BUILD file evaluation environment."""
+        if not isinstance(label_string, str):
+            raise iga.fargparse.ParseError()
         return Label.parse(label_string, iga.env.current()['package'])
+
+    def __str__(self):
+        return '//%s:%s' % (self.package, self.target)
 
     @property
     def name(self):
