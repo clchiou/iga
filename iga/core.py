@@ -6,6 +6,7 @@ __all__ = [
     'WriteOnceBimap',
     'WriteOnceDict',
     'group',
+    'list_difference',
 ]
 
 from collections import OrderedDict
@@ -23,6 +24,12 @@ def group(items, key=None, as_dict=True):
     if as_dict:
         groups = dict(groups)
     return groups
+
+
+def list_difference(this, other):
+    """Return elements in this list but not in the other."""
+    other = frozenset(other)
+    return [element for element in this if element not in other]
 
 
 def _repr(obj, data):
