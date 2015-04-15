@@ -65,7 +65,7 @@ def _match_inputs(rule_data, paths_by_type, outdir, rule):
             )
         inputs = sorted(outdir / path for path in inputs)
         adding = list_difference(inputs, rule.inputs[input_type])
-        rule.inputs.extend(adding)
+        rule.inputs[input_type].extend(adding)
         added_pathset_by_type[input_type].update(adding)
     return added_pathset_by_type
 
