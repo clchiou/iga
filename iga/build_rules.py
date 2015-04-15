@@ -23,8 +23,7 @@ def build_rules(package, rule_datas, *, _env=None):
         pathsets_by_type = glob_by_type(
             rule.rule_type.input_types, rule_data.input_patterns, srcdir
         )
-        for input_type, pathset in pathsets_by_type.items():
-            rule.inputs[input_type].extend(pathset)
+        update_pathlists(rule.inputs, pathsets_by_type)
     # Generate outputs from current inputs.
     added_pathsets_by_type = defaultdict(set)
     for rule in rules.values():
@@ -87,5 +86,11 @@ def _gen_outputs(inputs_by_type, rule):
 
 
 def update_pathsets(pathsets_by_type, more_pathsets_by_type):
-    for path_type, pathset in more_pathsets_by_type.items():
-        pathsets_by_type[path_type].update(pathset)
+    for typ, pathset in more_pathsets_by_type.items():
+        pathsets_by_type[typ].update(pathset)
+
+
+def update_pathlists(pathlists_by_type, paths_by_type):
+    for typ, paths in paths_by_type.items():
+        adding = list_difference(paths, pathlists_by_type[typ])
+        pathlists_by_type[typ].extend(adding)
