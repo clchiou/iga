@@ -22,11 +22,11 @@ def build_rules(package, rule_datas, *, _env=None):
     # Generate outputs from current inputs.
     added_pathsets_by_type = defaultdict(set)
     for rule in rules.values():
-        _update_pathsets(
+        update_pathsets(
             added_pathsets_by_type, _gen_outputs(rule.inputs, rule)
         )
-    # Iteratively update inputs and outputs.
-    while added_pathsets_by_type:
+    # Iteratively update inputs.
+    while is_not_empty(added_pathsets_by_type):
         paths_by_type = {
             path_type: sorted(pathset)
             for path_type, pathset in added_pathsets_by_type.items()
@@ -34,11 +34,15 @@ def build_rules(package, rule_datas, *, _env=None):
         added_pathsets_by_type = defaultdict(set)
         for rule_data in rule_datas:
             rule = rules[rule_data.name]
-            _update_pathsets(
+            update_pathsets(
                 added_pathsets_by_type,
                 _match_inputs(rule_data, paths_by_type, outdir, rule),
             )
     return [rules[rule_data.name] for rule_data in rule_datas]
+
+
+def is_not_empty(pathsets_by_type):
+    return any(pathset for pathset in pathsets_by_type.values())
 
 
 def _glob_inputs(rule_data, srcdir, rule):
@@ -76,6 +80,6 @@ def _gen_outputs(inputs_by_type, rule):
     return added_pathset_by_type
 
 
-def _update_pathsets(pathsets_by_type, more_pathsets_by_type):
+def update_pathsets(pathsets_by_type, more_pathsets_by_type):
     for path_type, pathset in more_pathsets_by_type.items():
         pathsets_by_type[path_type].update(pathset)
