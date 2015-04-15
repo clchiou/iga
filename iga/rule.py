@@ -22,23 +22,23 @@ class RuleType(RegistryMixin):
 
     @staticmethod
     def make(**kwargs):
-        kwargs.setdefault('generate_outputs', _gen_no_outputs)
+        kwargs.setdefault('make_outputs', _make_no_outputs)
         return RuleType(**kwargs)
 
     def __init__(self,
                  name,
                  input_types,
                  output_types,
-                 generate_outputs,
+                 make_outputs,
                  generate_buildstmts):
         self.name = name
         self.input_types = input_types
         self.output_types = output_types
-        self.generate_outputs = generate_outputs
+        self.make_outputs = make_outputs
         self.generate_buildstmts = generate_buildstmts
 
 
-def _gen_no_outputs(_):
+def _make_no_outputs(_):
     return {}
 
 

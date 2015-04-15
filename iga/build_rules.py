@@ -68,7 +68,7 @@ def _match_inputs(rule_data, paths_by_type, outdir, rule):
 
 def _gen_outputs(inputs_by_type, rule):
     added_pathset_by_type = defaultdict(set)
-    outputs_by_type = rule.rule_type.generate_outputs(inputs_by_type)
+    outputs_by_type = rule.rule_type.make_outputs(inputs_by_type)
     for output_type, outputs in outputs_by_type.items():
         adding = list_difference(outputs, rule.outputs[output_type])
         rule.outputs[output_type].extend(adding)
