@@ -9,7 +9,7 @@ from iga.core import list_difference
 from iga.rule import Rule
 
 
-def build_rules(package, rule_datas, _env=None):
+def build_rules(package, rule_datas, *, _env=None):
     """Build Rule objects from a list of RuleData iteratively."""
     env = _env or iga.env.current()
     srcdir = env['source'] / package
