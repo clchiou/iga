@@ -2,9 +2,11 @@ __all__ = [
     'build_rules',
 ]
 
+import itertools
 from collections import defaultdict
 
 import iga.env
+from iga.core import ImmutableOrderedSet
 from iga.core import list_difference
 from iga.rule import Rule
 
@@ -18,7 +20,11 @@ def build_rules(package, rule_datas, *, _env=None):
     # Glob inputs.
     for rule_data in rule_datas:
         rule = rules[rule_data.name]
-        _glob_inputs(rule_data, srcdir, rule)
+        pathsets_by_type = glob_by_type(
+            rule.rule_type.input_types, rule_data.input_patterns, srcdir
+        )
+        for input_type, pathset in pathsets_by_type.items():
+            rule.inputs[input_type].extend(pathset)
     # Generate outputs from current inputs.
     added_pathsets_by_type = defaultdict(set)
     for rule in rules.values():
@@ -45,14 +51,14 @@ def is_not_empty(pathsets_by_type):
     return any(pathset for pathset in pathsets_by_type.values())
 
 
-def _glob_inputs(rule_data, srcdir, rule):
-    for input_type in rule.inputs:
-        inputs = set()
-        for pattern in rule_data.input_patterns.get(input_type, ()):
-            inputs.update(pattern.glob(srcdir))
-        inputs = sorted(inputs)
-        adding = list_difference(inputs, rule.inputs[input_type])
-        rule.inputs[input_type].extend(adding)
+def glob_by_types(types, patterns_by_type, dirpath):
+    pathsets_by_type = {}
+    for typ in types:
+        pathset = ImmutableOrderedSet(itertools.chain.from_iterable(
+            pattern.glob(dirpath) for pattern in patterns_by_type.get(typ, ())
+        ))
+        pathsets_by_type[typ] = pathset
+    return pathsets_by_type
 
 
 def _match_inputs(rule_data, paths_by_type, outdir, rule):
