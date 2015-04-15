@@ -99,7 +99,8 @@ class Rule(RegistryMixin):
         self.outputs = outputs
 
     def write_to(self, ninja_file):
-        pass
+        for buildstmt in self.rule_type.generate_buildstmts(self):
+            buildstmt.write_to(ninja_file)
 
 
 class RuleData(namedtuple('RuleData', '''
