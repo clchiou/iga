@@ -17,7 +17,10 @@ from collections import defaultdict
 
 
 def group(items, key=None, as_dict=True):
-    """Group items by applying key function."""
+    """Group items by applying key function.
+
+    Return a `defaultdict(list)` object if as_dict is False.
+    """
     key = key or (lambda item: item)
     groups = defaultdict(list)
     for item in items:
