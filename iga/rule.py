@@ -10,6 +10,7 @@ from collections import namedtuple
 
 import iga.env
 import iga.preconditions
+from iga.core import KeyedSets
 from iga.fargparse import FuncArgsParser
 from iga.registry import RegistryMixin
 
@@ -75,16 +76,10 @@ class Rule(RegistryMixin):
     @staticmethod
     def make(rule_data):
         rule_type = RuleType.get_object(rule_data.rule_type)
-        rd_inputs = rule_data.inputs or {}
-        inputs = {
-            input_type: rd_inputs.get(input_type) or []
-            for input_type in rule_type.input_types
-        }
-        rd_outputs = rule_data.outputs or {}
-        outputs = {
-            output_type: rd_outputs.get(output_type) or []
-            for output_type in rule_type.output_types
-        }
+        inputs = KeyedSets(rule_type.input_types)
+        inputs.update(rule_data.inputs)
+        outputs = KeyedSets(rule_type.output_types)
+        outputs.update(rule_data.outputs)
         return Rule(
             name=rule_data.name,
             rule_type=rule_type,
