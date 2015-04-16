@@ -12,9 +12,7 @@ from iga.rule import Rule
 
 def build_rules(package, rule_datas, *, _env=None):
     """Build Rule objects from a list of RuleData iteratively."""
-    env = _env or iga.env.current()
-    srcdir = env['source']
-    outdir = env['build']
+    srcdir = (_env or iga.env.current())['source']
     rules = [Rule.make(rule_data) for rule_data in rule_datas]
     # Glob source directory.
     for rule, rule_data in zip(rules, rule_datas):
@@ -29,10 +27,8 @@ def build_rules(package, rule_datas, *, _env=None):
         rule.outputs.update(rule.rule_type.make_outputs(rule.inputs))
     # Iteratively update inputs from other rules' outputs.
     added_outputs = {rule.name: rule.outputs for rule in rules}
-    changed = True
-    while changed:
+    while added_outputs:
         added_inputs = []
-        changed = False
         for rule, rule_data in zip(rules, rule_datas):
             adding = KeyedSets(rule.inputs.keys())
             # Gather outputs from other rules.
@@ -41,20 +37,19 @@ def build_rules(package, rule_datas, *, _env=None):
                     adding.update(outputs)
             # Match against this rule's input_patterns.
             adding = match_keyed_sets(adding, rule_data.input_patterns)
-            # Remove elements already there.
+            # Remove labels that are already there.
             adding.difference_update(rule.inputs)
             # If it's still non-empty, then changed is True.
-            added_inputs.append((rule, adding))
-            changed = changed or adding
-        # Update inputs.
-        for rule, adding in added_inputs:
-            rule.inputs.update(adding)
-        # Make outputs from newly-added inputs.
+            if adding:
+                added_inputs.append((rule, adding))
+        # Update inputs and make outputs from newly-added inputs.
         added_outputs = {}
         for rule, adding in added_inputs:
+            rule.inputs.update(adding)
             outputs = rule.rule_type.make_outputs(adding)
-            rule.outputs.update(outputs)
-            added_outputs[rule.name] = outputs
+            if outputs:
+                rule.outputs.update(outputs)
+                added_outputs[rule.name] = outputs
     return rules
 
 
@@ -65,7 +60,7 @@ def glob_keyed_sets(keys, patterns, from_dir, package):
         paths = itertools.chain.from_iterable(
             pattern.glob(package_dir) for pattern in patterns.get(key, ())
         )
-        labels = (path_to_label(path, from_dir, package) for path in paths)
+        labels = (_path_to_label(path, from_dir, package) for path in paths)
         ksets[key].update(labels)
     return ksets
 
@@ -80,6 +75,6 @@ def match_keyed_sets(ksets, patterns):
     return result
 
 
-def path_to_label(path, root, package):
+def _path_to_label(path, root, package):
     target = path.relative_to(root / package)
     return Label.make(package, target)

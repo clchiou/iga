@@ -35,8 +35,13 @@ class RuleType(RegistryMixin):
         self.name = name
         self.input_types = input_types
         self.output_types = output_types
-        self.make_outputs = make_outputs
+        self._make_outputs = make_outputs
         self.generate_buildstmts = generate_buildstmts
+
+    def make_outputs(self, inputs):
+        ksets = KeyedSets(self.output_types)
+        ksets.update(self._make_outputs(inputs))
+        return ksets
 
 
 def _make_no_outputs(_):
