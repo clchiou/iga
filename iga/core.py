@@ -3,6 +3,7 @@
 __all__ = [
     'Bimap',
     'ImmutableOrderedSet',
+    'OrderedSet',
     'WriteOnceBimap',
     'WriteOnceDict',
     'group',
@@ -11,6 +12,7 @@ __all__ = [
 
 from collections import OrderedDict
 from collections import MutableMapping
+from collections import MutableSet
 from collections import Set
 from collections import defaultdict
 
@@ -58,6 +60,16 @@ class ImmutableOrderedSet(Set):
 
     def __str__(self):
         return _repr(self, list(self._data.keys()))
+
+
+class OrderedSet(MutableSet, ImmutableOrderedSet):
+    """A set that remembers the order that elements were inserted."""
+
+    def add(self, value):
+        self._data[value] = None
+
+    def discard(self, value):
+        self._data.pop(value, None)
 
 
 class WriteOnceDict(MutableMapping):
