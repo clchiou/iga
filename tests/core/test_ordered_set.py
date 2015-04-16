@@ -29,6 +29,12 @@ class TestOrderedSet(unittest.TestCase):
         self.assertEqual(['a'], list(oset))
         oset.discard('b')  # Do nothing when discard non-member.
 
+    def test_difference_update(self):
+        oset = OrderedSet('abc')
+        self.assertEqual(['a', 'b', 'c'], list(oset))
+        oset.difference_update('bcd')
+        self.assertEqual(['a'], list(oset))
+
 
 if __name__ == '__main__':
     unittest.main()

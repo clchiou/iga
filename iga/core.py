@@ -77,7 +77,15 @@ class OrderedSet(MutableSet, ImmutableOrderedSet):
         self._data.pop(value, None)
 
     def update(self, other):
-        self |= other
+        for value in other:
+            self.add(value)
+
+    def difference_update(self, other):
+        if other is self:
+            self.clear()
+            return
+        for value in other:
+            self.discard(value)
 
 
 class WriteOnceDict(MutableMapping):
@@ -132,7 +140,12 @@ class KeyedSets:
     def update(self, other):
         for key in other:
             if key in self._sets:
-                self._sets[key] |= other[key]
+                self._sets[key].update(other[key])
+
+    def difference_update(self, other):
+        for key in other:
+            if key in self._sets:
+                self._sets[key].difference_update(other[key])
 
     def keys(self):
         return self._sets.keys()
