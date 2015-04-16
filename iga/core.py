@@ -76,6 +76,9 @@ class OrderedSet(MutableSet, ImmutableOrderedSet):
     def discard(self, value):
         self._data.pop(value, None)
 
+    def update(self, other):
+        self |= other
+
 
 class WriteOnceDict(MutableMapping):
     """A dict that does not allow overwriting keys."""
@@ -126,11 +129,10 @@ class KeyedSets:
     def __getitem__(self, key):
         return self._sets[key]
 
-    def __ior__(self, other):
+    def update(self, other):
         for key in other:
             if key in self._sets:
                 self._sets[key] |= other[key]
-        return self
 
     def keys(self):
         return self._sets.keys()

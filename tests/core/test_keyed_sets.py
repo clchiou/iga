@@ -17,9 +17,9 @@ class TestKeyedSets(unittest.TestCase):
 
     def test_ior(self):
         ksets = KeyedSets(['a', 'b'])
-        ksets |= {'a': {1, 2, 3}, 'c': {4, 5, 6}}
+        ksets.update({'a': {1, 2, 3}, 'c': {4, 5, 6}})
         self.assertEqual({'a': {1, 2, 3}, 'b': set()}, ksets.as_dict_of_sets())
-        ksets |= {'a': {2, 4}, 'b': {4, 5}}
+        ksets.update({'a': {2, 4}, 'b': {4, 5}})
         self.assertEqual(
             {'a': {1, 2, 3, 4}, 'b': {4, 5}}, ksets.as_dict_of_sets()
         )
