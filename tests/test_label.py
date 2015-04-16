@@ -11,11 +11,11 @@ class TestLabel(unittest.TestCase):
         package = 'a/b/c'
 
         self.assertEqual(
-            make_label(package, 'd/e/f'),
+            Label.make(package, 'd/e/f'),
             Label.parse('d/e/f', package),
         )
         self.assertEqual(
-            make_label('x/y/z', 'd/e/f'),
+            Label.make('x/y/z', 'd/e/f'),
             Label.parse('//x/y/z:d/e/f', package),
         )
 
@@ -28,7 +28,7 @@ class TestLabel(unittest.TestCase):
         ]
         for label in test_labels:
             self.assertEqual(
-                make_label(package, 'c'),
+                Label.make(package, 'c'),
                 Label.parse(label, package),
             )
 
@@ -43,10 +43,6 @@ class TestLabel(unittest.TestCase):
         ]
         for label in illegal_labels:
             self.assertRaises(IgaError, Label.parse, label, package)
-
-
-def make_label(package, target):
-    return Label(PurePosixPath(package), PurePosixPath(target))
 
 
 if __name__ == '__main__':

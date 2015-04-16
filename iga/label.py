@@ -5,6 +5,7 @@ __all__ = [
 ]
 
 from collections import namedtuple
+from pathlib import PurePath
 from pathlib import PurePosixPath
 
 import iga.env
@@ -61,6 +62,14 @@ class Label(namedtuple('Label', 'package target')):
         if not isinstance(label_string, str):
             raise iga.fargparse.ParseError()
         return Label.parse(label_string, iga.env.current()['package'])
+
+    @staticmethod
+    def make(package, target):
+        if not isinstance(package, PurePath):
+            package = PurePosixPath(package)
+        if not isinstance(target, PurePath):
+            target = PurePosixPath(target)
+        return Label(package=package, target=target)
 
     def __str__(self):
         return '//%s:%s' % (self.package, self.target)
