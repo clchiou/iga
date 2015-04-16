@@ -3,6 +3,7 @@
 __all__ = [
     'ImmutableOrderedSet',
     'OrderedSet',
+    'KeyedSets',
     'WriteOnceDict',
     'group',
     'list_difference',
@@ -63,6 +64,9 @@ class ImmutableOrderedSet(Set):
 class OrderedSet(MutableSet, ImmutableOrderedSet):
     """A set that remembers the order that elements were inserted."""
 
+    def __init__(self, iterable=()):
+        super().__init__(iterable)
+
     def add(self, value):
         self._data[value] = None
 
@@ -99,3 +103,34 @@ class WriteOnceDict(MutableMapping):
 
     def __str__(self):
         return _repr(self, self._data)
+
+
+class KeyedSets:
+    """A collection of sets indexed by predefined keys."""
+
+    def __init__(self, keys, set_type=OrderedSet):
+        self._sets = {key: set_type() for key in keys}
+
+    def __bool__(self):
+        return any(self._sets.values())
+
+    def __contains__(self, key):
+        return key in self._sets
+
+    def __iter__(self):
+        return iter(self._sets)
+
+    def __getitem__(self, key):
+        return self._sets[key]
+
+    def __ior__(self, other):
+        for key in other:
+            if key in self._sets:
+                self._sets[key] |= other[key]
+        return self
+
+    def keys(self):
+        return self._sets.keys()
+
+    def as_dict_of_sets(self):
+        return dict((key, set(kset)) for key, kset in self._sets.items())
