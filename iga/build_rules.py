@@ -3,94 +3,83 @@ __all__ = [
 ]
 
 import itertools
-from collections import defaultdict
 
 import iga.env
-from iga.core import ImmutableOrderedSet
-from iga.core import list_difference
+from iga.core import KeyedSets
+from iga.label import Label
 from iga.rule import Rule
 
 
 def build_rules(package, rule_datas, *, _env=None):
     """Build Rule objects from a list of RuleData iteratively."""
     env = _env or iga.env.current()
-    srcdir = env['source'] / package
-    outdir = env['build'] / package
-    rules = {rule_data.name: Rule.make(rule_data) for rule_data in rule_datas}
-    # Glob inputs.
-    for rule_data in rule_datas:
-        rule = rules[rule_data.name]
-        pathsets_by_type = glob_by_type(
-            rule.rule_type.input_types, rule_data.input_patterns, srcdir
-        )
-        update_pathlists(rule.inputs, pathsets_by_type)
-    # Generate outputs from current inputs.
-    added_pathsets_by_type = defaultdict(set)
-    for rule in rules.values():
-        update_pathsets(
-            added_pathsets_by_type, _gen_outputs(rule.inputs, rule)
-        )
-    # Iteratively update inputs.
-    while is_not_empty(added_pathsets_by_type):
-        paths_by_type = {
-            path_type: sorted(pathset)
-            for path_type, pathset in added_pathsets_by_type.items()
-        }
-        added_pathsets_by_type = defaultdict(set)
-        for rule_data in rule_datas:
-            rule = rules[rule_data.name]
-            update_pathsets(
-                added_pathsets_by_type,
-                _match_inputs(rule_data, paths_by_type, outdir, rule),
-            )
-    return [rules[rule_data.name] for rule_data in rule_datas]
-
-
-def is_not_empty(pathsets_by_type):
-    return any(pathset for pathset in pathsets_by_type.values())
-
-
-def glob_by_types(types, patterns_by_type, dirpath):
-    pathsets_by_type = {}
-    for typ in types:
-        pathset = ImmutableOrderedSet(itertools.chain.from_iterable(
-            pattern.glob(dirpath) for pattern in patterns_by_type.get(typ, ())
+    srcdir = env['source']
+    outdir = env['build']
+    rules = [Rule.make(rule_data) for rule_data in rule_datas]
+    # Glob source directory.
+    for rule, rule_data in zip(rules, rule_datas):
+        rule.inputs.update(glob_keyed_sets(
+            rule.inputs.keys(),
+            rule_data.input_patterns,
+            srcdir,
+            package,
         ))
-        pathsets_by_type[typ] = pathset
-    return pathsets_by_type
+    # Make outputs from inputs.
+    for rule in rules:
+        rule.outputs.update(rule.rule_type.make_outputs(rule.inputs))
+    # Iteratively update inputs from other rules' outputs.
+    added_outputs = {rule.name: rule.outputs for rule in rules}
+    changed = True
+    while changed:
+        added_inputs = []
+        changed = False
+        for rule, rule_data in zip(rules, rule_datas):
+            adding = KeyedSets(rule.inputs.keys())
+            # Gather outputs from other rules.
+            for name, outputs in added_outputs.items():
+                if name != rule.name:
+                    adding.update(outputs)
+            # Match against this rule's input_patterns.
+            adding = match_keyed_sets(adding, rule_data.input_patterns)
+            # Remove elements already there.
+            adding.difference_update(rule.inputs)
+            # If it's still non-empty, then changed is True.
+            added_inputs.append((rule, adding))
+            changed = changed or adding
+        # Update inputs.
+        for rule, adding in added_inputs:
+            rule.inputs.update(adding)
+        # Make outputs from newly-added inputs.
+        added_outputs = {}
+        for rule, adding in added_inputs:
+            outputs = rule.rule_type.make_outputs(adding)
+            rule.outputs.update(outputs)
+            added_outputs[rule.name] = outputs
+    return rules
 
 
-def _match_inputs(rule_data, paths_by_type, outdir, rule):
-    added_pathset_by_type = defaultdict(set)
-    for input_type in rule.inputs:
-        inputs = set()
-        for pattern in rule_data.input_patterns.get(input_type, ()):
-            inputs.update(
-                filter(pattern.match, paths_by_type.get(input_type, ()))
+def glob_keyed_sets(keys, patterns, from_dir, package):
+    ksets = KeyedSets(keys)
+    package_dir = from_dir / package
+    for key in ksets:
+        paths = itertools.chain.from_iterable(
+            pattern.glob(package_dir) for pattern in patterns.get(key, ())
+        )
+        labels = (path_to_label(path, from_dir, package) for path in paths)
+        ksets[key].update(labels)
+    return ksets
+
+
+def match_keyed_sets(ksets, patterns):
+    result = KeyedSets(ksets.keys())
+    for key in ksets:
+        for pattern in patterns.get(key, ()):
+            result[key].update(
+                label for label in ksets[key] if pattern.match(label.target)
             )
-        inputs = sorted(outdir / path for path in inputs)
-        adding = list_difference(inputs, rule.inputs[input_type])
-        rule.inputs[input_type].extend(adding)
-        added_pathset_by_type[input_type].update(adding)
-    return added_pathset_by_type
+    return result
 
 
-def _gen_outputs(inputs_by_type, rule):
-    added_pathset_by_type = defaultdict(set)
-    outputs_by_type = rule.rule_type.make_outputs(inputs_by_type)
-    for output_type, outputs in outputs_by_type.items():
-        adding = list_difference(outputs, rule.outputs[output_type])
-        rule.outputs[output_type].extend(adding)
-        added_pathset_by_type[output_type].update(adding)
-    return added_pathset_by_type
-
-
-def update_pathsets(pathsets_by_type, more_pathsets_by_type):
-    for typ, pathset in more_pathsets_by_type.items():
-        pathsets_by_type[typ].update(pathset)
-
-
-def update_pathlists(pathlists_by_type, paths_by_type):
-    for typ, paths in paths_by_type.items():
-        adding = list_difference(paths, pathlists_by_type[typ])
-        pathlists_by_type[typ].extend(adding)
+def path_to_label(path, root, package):
+    target = path.relative_to(root / package)
+    return Label.make(package, target)
