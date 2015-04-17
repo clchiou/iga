@@ -4,12 +4,17 @@ __all__ = [
     'init',
 ]
 
+import itertools
+
+from iga.core import ImmutableOrderedSet
 from iga.core import group
+from iga.core import traverse
 from iga.fargparse import oneof
 from iga.label import Label
 from iga.ninja import NinjaBuildstmt
 from iga.ninja import NinjaRule
 from iga.path import Glob
+from iga.rule import Rule
 from iga.rule import RuleData
 from iga.rule import RuleFunc
 from iga.rule import RuleType
@@ -90,7 +95,7 @@ def cc_library(
             CC_SOURCE: srcs[Glob],
         },
         outputs={
-            CC_LIBRARY: [name.with_name(to_libname(name.name))],
+            CC_LIBRARY: [name.with_name(_lib(name.name))],
         },
     )
 
@@ -136,28 +141,27 @@ def generate_library(rule):
 
 def generate_binary(rule):
     yield from generate_objects(rule)
-    libs = [
-        lib.with_name(to_libname(lib.name))
-        for lib in rule.inputs[CC_LIBRARY]
-    ]
-    ldflags = ' '.join(
-        '-L%s' % lib.path.parent for lib in rule.inputs[CC_LIBRARY]
-    )
-    llibs = ' '.join(
-        '-l%s' % lib.name for lib in rule.inputs[CC_LIBRARY]
-    )
+    deps = ImmutableOrderedSet(itertools.chain.from_iterable(
+        traverse(dep, _get_deps) for dep in rule.inputs[CC_LIBRARY]
+    ))
+    ldflags = ' '.join('-L%s' % dep.path.parent for dep in deps)
+    libs = ' '.join('-l%s' % dep.name for dep in deps)
     yield NinjaBuildstmt.make(
         ninja_rule=CC_BINARY,
         outputs=rule.outputs[CC_BINARY],
         explicit_deps=rule.outputs[CC_OBJECT],
-        implicit_deps=libs,
+        implicit_deps=[dep.with_name(_lib(dep.name)) for dep in deps],
         variables={
             'ldflags': '$ldflags ' + ldflags,
-            'libs': llibs,
+            'libs': libs,
         },
     )
 
 
-def to_libname(name):
-    """X -> libX.a"""
+def _get_deps(label):
+    rule = Rule.get_object(label)
+    return [Rule.get_object(dep).name for dep in rule.inputs[CC_LIBRARY]]
+
+
+def _lib(name):
     return 'lib%s.a' % name

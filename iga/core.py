@@ -6,6 +6,7 @@ __all__ = [
     'KeyedSets',
     'WriteOnceDict',
     'group',
+    'traverse',
 ]
 
 from collections import OrderedDict
@@ -28,6 +29,12 @@ def group(items, key=None, as_dict=True):
     if as_dict:
         groups = dict(groups)
     return groups
+
+
+def traverse(node, expand):
+    yield node
+    for more_node in expand(node):
+        yield from traverse(more_node, expand)
 
 
 def _repr(obj, data):

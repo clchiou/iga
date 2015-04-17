@@ -6,10 +6,10 @@ import argparse
 import itertools
 import logging
 import sys
+from collections import OrderedDict
 
 import iga.ninja
 import iga.package
-from iga.core import ImmutableOrderedSet
 from iga.label import Label
 from iga.ninja import NinjaRule
 
@@ -30,21 +30,22 @@ def main(argv=None):
     args = parser.parse_args(argv[1:])
     label = Label.parse_cmdline(args.label)
     queue = [iga.package.get_rule(label)]
-    rules = set()
-    ninja_rules = set()
+    rules = OrderedDict()
+    ninja_rules = OrderedDict()
+    while queue:
+        rule = queue.pop(0)
+        if rule.name in rules:
+            continue
+        rules[rule.name] = rule
+        for ninja_rule in rule.rule_type.ninja_rules:
+            ninja_rules[ninja_rule] = NinjaRule.get_object(ninja_rule)
+        queue.extend(generate_input_rules(rule))
     with open('build.ninja', 'w') as ninja_file:
         iga.ninja.write_header_to(ninja_file)
-        while queue:
-            rule = queue.pop(0)
-            if rule.name in rules:
-                continue
-            for ninja_rule in rule.rule_type.ninja_rules:
-                if ninja_rule not in ninja_rules:
-                    NinjaRule.get_object(ninja_rule).write_to(ninja_file)
-                    ninja_rules.add(ninja_rule)
+        for ninja_rule in ninja_rules.values():
+            ninja_rule.write_to(ninja_file)
+        for rule in rules.values():
             rule.write_to(ninja_file)
-            queue.extend(ImmutableOrderedSet(generate_input_rules(rule)))
-            rules.add(rule.name)
     return 0
 
 
