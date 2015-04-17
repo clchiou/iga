@@ -31,11 +31,13 @@ class RuleType(RegistryMixin):
                  input_types,
                  output_types,
                  make_outputs,
+                 ninja_rules,
                  generate_buildstmts):
         self.name = name
         self.input_types = input_types
         self.output_types = output_types
         self._make_outputs = make_outputs
+        self.ninja_rules = ninja_rules
         self.generate_buildstmts = generate_buildstmts
 
     def make_outputs(self, inputs):

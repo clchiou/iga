@@ -31,6 +31,7 @@ class TestBuildRules(unittest.TestCase):
             input_types=['it-1', 'it-2', 'ot-1', 'ot-2'],
             output_types=['ot-1', 'ot-2'],
             make_outputs=make_outputs,
+            ninja_rules=[],
             generate_buildstmts=None,
         ))
 
