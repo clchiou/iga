@@ -17,7 +17,8 @@ def workspace(
         *,
         root=None,
         source='.',
-        build='build'):
+        build='build',
+        variables=None):
     """Define workspace variables in root env."""
     root = root or iga.path.get_caller_path(ancestor=1).parent
     LOG.info('root = %s', root)
@@ -29,8 +30,10 @@ def workspace(
         raise IgaError('"source" is not a dir: %s' % source)
     build = root / build
     LOG.info('build = %s', build)
+    variables = variables or {}
     iga.env.current().update(
         root=root,
         source=source,
         build=build,
+        variables=variables,
     )
