@@ -10,6 +10,7 @@ __all__ = [
 ]
 
 from collections import OrderedDict
+from collections import Mapping
 from collections import MutableMapping
 from collections import MutableSet
 from collections import Set
@@ -119,20 +120,23 @@ class WriteOnceDict(MutableMapping):
         return _repr(self, self._data)
 
 
-class KeyedSets:
+class KeyedSets(Mapping):
     """A collection of sets indexed by predefined keys."""
 
-    def __init__(self, keys, set_type=OrderedSet):
-        self._sets = {key: set_type() for key in keys}
+    def __init__(self, keys, *, set_like=OrderedSet):
+        self._sets = {key: set_like() for key in keys}
 
     def __bool__(self):
         return any(self._sets.values())
 
-    def __contains__(self, key):
-        return key in self._sets
+    def __len__(self):
+        return len(self._sets)
 
     def __iter__(self):
         return iter(self._sets)
+
+    def __contains__(self, key):
+        return key in self._sets
 
     def __getitem__(self, key):
         return self._sets[key]
@@ -146,9 +150,6 @@ class KeyedSets:
         for key in other:
             if key in self._sets:
                 self._sets[key].difference_update(other[key])
-
-    def keys(self):
-        return self._sets.keys()
 
     def as_dict_of_sets(self):
         return dict((key, set(kset)) for key, kset in self._sets.items())
