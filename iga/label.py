@@ -75,11 +75,18 @@ class Label(namedtuple('Label', 'package target')):
         return '//%s:%s' % (self.package, self.target)
 
     @property
+    def path(self):
+        return self.package / self.target
+
+    @property
     def name(self):
         return self.target.name
 
     def with_name(self, name):
         return Label(self.package, self.target.with_name(name))
+
+    def with_suffix(self, suffix):
+        return Label(self.package, self.target.with_suffix(suffix))
 
 
 iga.fargparse.Parser.register_parse_func(Label, Label.parse_buildfile)
