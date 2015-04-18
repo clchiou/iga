@@ -9,7 +9,7 @@ import logging
 from collections import namedtuple
 
 import iga.context
-import iga.preconditions
+import iga.precond
 from iga.core import KeyedSets
 from iga.fargparse import FuncArgsParser
 from iga.registry import RegistryMixin
@@ -74,7 +74,7 @@ class RuleFunc(RegistryMixin):
         if ignored:
             LOG.debug('%s ignores %r', self.name, ignored)
         rule_data = self.rule_func(*args, **kwargs)
-        iga.preconditions.check_type(rule_data, RuleData)
+        iga.precond.check_type(rule_data, RuleData)
         iga.context.current()['rule_data'].append(rule_data)
 
 

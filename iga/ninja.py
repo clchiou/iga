@@ -4,7 +4,7 @@ __all__ = [
 ]
 
 import iga.context
-import iga.preconditions
+import iga.precond
 from iga.registry import RegistryMixin
 
 RULE_VARS_1_0 = frozenset((
@@ -68,13 +68,13 @@ class NinjaRule(RegistryMixin):
 
     @staticmethod
     def make(name, command, **kwargs):
-        iga.preconditions.check(
+        iga.precond.check(
             name not in RESERVED_RULE_NAMES,
             'cannot use %r as rule name', name,
         )
         variables = dict(kwargs)
         forbiddens = frozenset(variables) - RULE_VARS
-        iga.preconditions.check(
+        iga.precond.check(
             not forbiddens, 'cannot use %r in a rule', forbiddens
         )
         return NinjaRule(name=name, command=command, variables=variables)
