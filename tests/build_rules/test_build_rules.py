@@ -36,7 +36,7 @@ class TestBuildRules(unittest.TestCase):
         ))
 
         package = 'a/b/c'
-        env = {'source': Path(__file__).parent / 'test-data/src'}
+        cxt = {'source': Path(__file__).parent / 'test-data/src'}
         rule_datas = [
             RuleData.make(
                 name=Label.make(package, 'rule-1'),
@@ -80,7 +80,7 @@ class TestBuildRules(unittest.TestCase):
             ),
         ]
 
-        rules = build_rules(package, rule_datas, _env=env)
+        rules = build_rules(package, rule_datas, _cxt=cxt)
         self.assertEqual(2, len(rules))
         self.assertRuleEqual(
             Rule(

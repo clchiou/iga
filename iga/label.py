@@ -8,7 +8,7 @@ from collections import namedtuple
 from pathlib import PurePath
 from pathlib import PurePosixPath
 
-import iga.env
+import iga.context
 import iga.fargparse
 from iga.error import IgaError
 
@@ -61,7 +61,7 @@ class Label(namedtuple('Label', 'package target')):
         """Parse label string within BUILD file evaluation environment."""
         if not isinstance(label_string, str):
             raise iga.fargparse.ParseError()
-        return Label.parse(label_string, iga.env.current()['package'])
+        return Label.parse(label_string, iga.context.current()['package'])
 
     @staticmethod
     def make(package, target):

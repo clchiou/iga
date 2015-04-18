@@ -4,15 +4,15 @@ __all__ = [
 
 import itertools
 
-import iga.env
+import iga.context
 from iga.core import KeyedSets
 from iga.label import Label
 from iga.rule import Rule
 
 
-def build_rules(package, rule_datas, *, _env=None):
+def build_rules(package, rule_datas, *, _cxt=None):
     """Build Rule objects from a list of RuleData iteratively."""
-    srcdir = (_env or iga.env.current())['source']
+    srcdir = (_cxt or iga.context.current())['source']
     rules = [Rule.make(rule_data) for rule_data in rule_datas]
     # Glob source directory.
     for rule, rule_data in zip(rules, rule_datas):

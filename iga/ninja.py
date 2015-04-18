@@ -3,7 +3,7 @@ __all__ = [
     'write_header_to',
 ]
 
-import iga.env
+import iga.context
 import iga.preconditions
 from iga.registry import RegistryMixin
 
@@ -56,11 +56,11 @@ rule {rule.name}
 '''
 
 
-def write_header_to(ninja_file, *, _env=None):
-    env = _env or iga.env.current()
+def write_header_to(ninja_file, *, _cxt=None):
+    variables = (_cxt or iga.context.current()).get('variables')
     ninja_file.write(NINJA_HEADER)
-    if env['variables']:
-        _write_vars(ninja_file, env['variables'], indent=0)
+    if variables:
+        _write_vars(ninja_file, variables, indent=0)
         ninja_file.write('\n')
 
 

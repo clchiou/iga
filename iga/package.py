@@ -6,7 +6,7 @@ __all__ = [
 import itertools
 import logging
 
-import iga.env
+import iga.context
 from iga.build_rules import build_rules
 from iga.core import WriteOnceDict
 from iga.error import IgaError
@@ -48,34 +48,30 @@ def get_rule_or_none(label):
 
 def _load_rules(package):
     """Load rules from a BUILD file."""
-    buildfile_path = iga.env.current()['source'] / package / 'BUILD'
+    buildfile_path = iga.context.current()['source'] / package / 'BUILD'
     LOG.info('load %s', buildfile_path)
     with buildfile_path.open() as buildfile:
         code = buildfile.read()
     code = compile(code, str(buildfile_path), 'exec')
     rule_data = []
-    with iga.env.enter() as child_env:
-        child_env['package'] = package
-        child_env['rule_data'] = rule_data
-        exec(code, _make_context())
+    with iga.context.create() as cxt:
+        cxt['package'] = package
+        cxt['rule_data'] = rule_data
+        exec(code, _make_buildfile_globals())
     return build_rules(package, rule_data)
 
 
-def _make_context():
-    context = WriteOnceDict()
-    context.update(_BUILTINS)
-    context.update(RuleFunc.get_all_objects())
-    return dict(context)
+def _make_buildfile_globals():
+    varz = WriteOnceDict()
+    varz.update(
+        package=_do_nothing('package'),
+    )
+    varz.update(RuleFunc.get_all_objects())
+    return dict(varz)
 
 
-def _make_context_func(func_name):
-    """Make functions executed inside BUILD evaluation context."""
+def _do_nothing(func_name):
     def func(**kwargs):
         if kwargs:
             LOG.debug('%s() ignores %r', func_name, sorted(kwargs))
     return func
-
-
-_BUILTINS = {
-    'package': _make_context_func('package'),
-}

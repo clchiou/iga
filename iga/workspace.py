@@ -4,7 +4,7 @@ __all__ = [
 
 import logging
 
-import iga.env
+import iga.context
 import iga.path
 from iga.error import IgaError
 
@@ -31,7 +31,7 @@ def workspace(
     build = root / build
     LOG.info('build = %s', build)
     variables = variables or {}
-    iga.env.current().update(
+    iga.context.current().update(
         root=root,
         source=source,
         build=build,
