@@ -1,8 +1,7 @@
-from iga.main import main
-from iga.workspace import workspace
+import iga
 
 
-workspace(
+iga.workspace(
     source = 'src',
     variables = {
         'cxx': 'g++',
@@ -10,6 +9,3 @@ workspace(
         'cflags': '-Isrc',
     },
 )
-
-if __name__ == '__main__':
-    main()

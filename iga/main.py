@@ -11,10 +11,11 @@ from collections import OrderedDict
 import iga.context
 import iga.ninja
 import iga.package
+from iga.context import load_workspace
 from iga.label import Label
 from iga.ninja import NinjaRule
 
-# Good for debugging
+
 logging.basicConfig(level=logging.DEBUG)
 
 
@@ -26,6 +27,7 @@ def init():
 def main(argv=None):
     argv = argv or sys.argv
     init()
+    load_workspace()
     parser = argparse.ArgumentParser(prog='iga')
     parser.add_argument('label')
     args = parser.parse_args(argv[1:])
