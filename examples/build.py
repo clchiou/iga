@@ -7,7 +7,7 @@ workspace(
     variables = {
         'cxx': 'g++',
         'ar': 'ar',
-        'cflags': '-I.',
+        'cflags': '-Isrc',
     },
 )
 

@@ -1,3 +1,7 @@
 __pycache__
+examples/.ninja_deps
+examples/.ninja_log
+examples/build
+examples/build.ninja
 examples/src/bazel-*
 examples/src/tools

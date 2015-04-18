@@ -1,3 +1,5 @@
+"""Iteratively build Rule objects from RuleData objects."""
+
 __all__ = [
     'build_rules',
 ]

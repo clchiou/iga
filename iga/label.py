@@ -74,9 +74,18 @@ class Label(namedtuple('Label', 'package target')):
     def __str__(self):
         return '//%s:%s' % (self.package, self.target)
 
+    def __repr__(self):
+        return '//%s:%s' % (self.package, self.target)
+
     @property
     def path(self):
-        return self.package / self.target
+        cxt = iga.context.current()
+        assert cxt.get('_parsed')
+        if self in cxt['outputs']:
+            root = cxt['build'].relative_to(cxt['root'])
+        else:
+            root = cxt['source'].relative_to(cxt['root'])
+        return root / self.package / self.target
 
     @property
     def name(self):

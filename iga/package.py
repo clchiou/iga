@@ -1,6 +1,6 @@
 __all__ = [
+    'get_outputs',
     'get_rule',
-    'get_rule_or_none',
 ]
 
 import itertools
@@ -18,32 +18,33 @@ LOG = logging.getLogger(__name__)
 LOG.addHandler(logging.NullHandler())
 
 
+# Packages that have been loaded (no BUILD file should be executed twice).
 _LOADED_PACKAGES = set()
-_FILE_LABLE_TO_RULE_NAME = WriteOnceDict()
 
 
-def get_rule(label):
-    """Return Rule object or raise IgaError if label points to non-rule."""
-    rule = get_rule_or_none(label)
-    if rule is None:
-        raise IgaError('%s is not a build rule' % (label,))
-    return rule
+# Map a rule's outputs to that rule.
+_OUTPUT_TO_RULE = WriteOnceDict()
 
 
-def get_rule_or_none(label):
-    """Return Rule object or raise IgaError if label points to non-rule."""
+def get_outputs():
+    return frozenset(_OUTPUT_TO_RULE)
+
+
+def get_rule(label, *, raises=False):
+    """Return Rule object or raise IgaError (if required, else return
+       None) if label does not refer to a rule or an output file.
+    """
     if label.package not in _LOADED_PACKAGES:
-        for rule in _load_rules(label.package):
-            Rule.register(rule)
-            for output in itertools.chain.from_iterable(rule.outputs.values()):
-                _FILE_LABLE_TO_RULE_NAME[output] = rule.name
+        _load_rules(label.package)
         _LOADED_PACKAGES.add(label.package)
-    # If label points to a file, find the rule generating that file.
-    label = _FILE_LABLE_TO_RULE_NAME.get(label, label)
+    rule_label = _OUTPUT_TO_RULE.get(label, label)
     try:
-        return Rule.get_object(label)
+        return Rule.get_object(rule_label)
     except KeyError:
-        return None
+        if raises:
+            raise IgaError('%s does not refer to a rule or an output file' %
+                           (label,))
+    return None
 
 
 def _load_rules(package):
@@ -58,7 +59,10 @@ def _load_rules(package):
         cxt['package'] = package
         cxt['rule_data'] = rule_data
         exec(code, _make_buildfile_globals())
-    return build_rules(package, rule_data)
+    for rule in build_rules(package, rule_data):
+        Rule.register(rule)
+        for output in itertools.chain.from_iterable(rule.outputs.values()):
+            _OUTPUT_TO_RULE[output] = rule.name
 
 
 def _make_buildfile_globals():

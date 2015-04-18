@@ -141,16 +141,21 @@ def generate_library(rule):
 
 def generate_binary(rule):
     yield from generate_objects(rule)
-    deps = ImmutableOrderedSet(itertools.chain.from_iterable(
-        traverse(dep, _get_deps) for dep in rule.inputs[CC_LIBRARY]
+    # Retrieve the transitive closure of dependent CC_LIBRARY rules.
+    deps = list(map(
+        Rule.get_object,
+        ImmutableOrderedSet(itertools.chain.from_iterable(
+            traverse(label, _get_labels) for label in rule.inputs[CC_LIBRARY]
+        ))
     ))
-    ldflags = ' '.join('-L%s' % dep.path.parent for dep in deps)
-    libs = ' '.join('-l%s' % dep.name for dep in deps)
+    outputs = [label for dep in deps for label in dep.outputs[CC_LIBRARY]]
+    ldflags = ' '.join('-L%s' % label.path.parent for label in outputs)
+    libs = ' '.join('-l%s' % _unlib(label.name) for label in outputs)
     yield NinjaBuildstmt.make(
         ninja_rule=CC_BINARY,
         outputs=rule.outputs[CC_BINARY],
         explicit_deps=rule.outputs[CC_OBJECT],
-        implicit_deps=[dep.with_name(_lib(dep.name)) for dep in deps],
+        implicit_deps=outputs,
         variables={
             'ldflags': '$ldflags ' + ldflags,
             'libs': libs,
@@ -158,10 +163,16 @@ def generate_binary(rule):
     )
 
 
-def _get_deps(label):
+def _get_labels(label):
     rule = Rule.get_object(label)
-    return [Rule.get_object(dep).name for dep in rule.inputs[CC_LIBRARY]]
+    return [Rule.get_object(label).name for label in rule.inputs[CC_LIBRARY]]
 
 
 def _lib(name):
     return 'lib%s.a' % name
+
+
+def _unlib(name):
+    """Inverse of _lib()."""
+    assert name.startswith('lib') and name.endswith('.a')
+    return name[3:-2]
