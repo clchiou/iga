@@ -1,5 +1,10 @@
 __version__ = '0.0.0-dev'
 
+__author__ = 'Che-Liang Chiou'
+__author_email__ = 'clchiou@gmail.com'
+__copyright__ = 'Copyright 2015, Che-Liang Chiou'
+__license__ = 'MIT'
+
 __all__ = [
     'workspace',
 ]
