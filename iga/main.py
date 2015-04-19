@@ -41,7 +41,7 @@ def init(args):
         format = '%(asctime)s %(levelname)s %(name)s: %(message)s'
     logging.basicConfig(level=level, format=format)
 
-    from iga.lang import cc
+    from iga.rules import cc
     cc.init()
 
 
