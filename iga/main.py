@@ -16,21 +16,40 @@ from iga.label import Label
 from iga.ninja import NinjaRule
 
 
-logging.basicConfig(level=logging.DEBUG)
+def parse_argv(argv):
+    parser = argparse.ArgumentParser(prog='iga', description='''
+    iga meta-build system
+    ''')
+    parser.add_argument(
+        '-v', '--verbose', action='count', default=0,
+        help='verbose output')
+    parser.add_argument(
+        'label',
+        help='build target')
+    return parser.parse_args(argv[1:])
 
 
-def init():
+def init(args):
+    if args.verbose == 0:
+        level = logging.WARNING
+        format = '%(levelname)s %(message)s'
+    elif args.verbose == 1:
+        level = logging.INFO
+        format = '%(levelname)s %(message)s'
+    else:
+        level = logging.DEBUG
+        format = '%(asctime)s %(levelname)s %(name)s: %(message)s'
+    logging.basicConfig(level=level, format=format)
+
     from iga.lang import cc
     cc.init()
 
 
 def main(argv=None):
-    argv = argv or sys.argv
-    init()
+    args = parse_argv(argv or sys.argv)
+
+    init(args)
     load_workspace()
-    parser = argparse.ArgumentParser(prog='iga')
-    parser.add_argument('label')
-    args = parser.parse_args(argv[1:])
     label = Label.parse_cmdline(args.label)
 
     rules = OrderedDict()
