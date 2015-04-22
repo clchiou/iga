@@ -1,5 +1,6 @@
 __all__ = [
     'RegistryMixin',
+    'get',
     'reset',
 ]
 
@@ -17,8 +18,8 @@ LOG.addHandler(logging.NullHandler())
 _REGISTRY = defaultdict(WriteOnceDict)
 
 
-def _make_namespace(klass):
-    return '%s.%s' % (klass.__module__, klass.__qualname__)
+def get(namespace):
+    return _REGISTRY[namespace]
 
 
 def reset():
@@ -47,3 +48,7 @@ class RegistryMixin:
     @classmethod
     def get_object(cls, name):
         return cls.get_all_objects()[name]
+
+
+def _make_namespace(klass):
+    return '%s.%s' % (klass.__module__, klass.__qualname__)

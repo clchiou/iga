@@ -94,6 +94,10 @@ class Label(namedtuple('Label', 'package target')):
     def with_name(self, name):
         return Label(self.package, self.target.with_name(name))
 
+    @property
+    def suffix(self):
+        return self.target.suffix
+
     def with_suffix(self, suffix):
         return Label(self.package, self.target.with_suffix(suffix))
 

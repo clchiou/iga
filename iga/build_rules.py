@@ -7,12 +7,15 @@ __all__ = [
 import itertools
 
 import iga.context
+import iga.filetype
 from iga.core import KeyedSets
+from iga.core import group
 from iga.label import Label
 from iga.rule import Rule
 
 
-def build_rules(package, rule_datas, *, _cxt=None):
+def build_rules(package, rule_datas,
+                *, _cxt=None, _get_file_type=iga.filetype.get):
     """Build Rule objects from a list of RuleData iteratively."""
     srcdir = (_cxt or iga.context.current())['source']
     rules = [Rule.make(rule_data) for rule_data in rule_datas]
@@ -23,6 +26,7 @@ def build_rules(package, rule_datas, *, _cxt=None):
             rule_data.input_patterns,
             srcdir,
             package,
+            _get_file_type=_get_file_type,
         ))
     # Make outputs from inputs.
     for rule in rules:
@@ -55,22 +59,24 @@ def build_rules(package, rule_datas, *, _cxt=None):
     return rules
 
 
-def glob_keyed_sets(keys, patterns, from_dir, package):
-    ksets = KeyedSets(keys)
+def glob_keyed_sets(keys, patterns, from_dir, package,
+                    *, _get_file_type):
     package_dir = from_dir / package
-    for key in ksets:
-        paths = itertools.chain.from_iterable(
-            pattern.glob(package_dir) for pattern in patterns.get(key, ())
-        )
-        labels = (_path_to_label(path, from_dir, package) for path in paths)
-        ksets[key].update(labels)
+    paths = itertools.chain.from_iterable(
+        pattern.glob(package_dir) for pattern in patterns
+    )
+    labels = (
+        _path_to_label(path, from_dir, package) for path in paths
+    )
+    ksets = KeyedSets(keys)
+    ksets.update(group(labels, key=_get_file_type))
     return ksets
 
 
 def match_keyed_sets(ksets, patterns):
     result = KeyedSets(ksets.keys())
     for key in ksets:
-        for pattern in patterns.get(key, ()):
+        for pattern in patterns:
             result[key].update(
                 label for label in ksets[key] if pattern.match(label.target)
             )

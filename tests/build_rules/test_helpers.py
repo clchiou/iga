@@ -15,11 +15,15 @@ class TestHelpers(unittest.TestCase):
         srcdir = Path(__file__).parent / 'test-data/src'
         package = 'pkg1'
 
+        def get_file_type(label):
+            return {'': 't1', '.txt': 't2', '.json': 't3'}[label.suffix]
+
         result = glob_keyed_sets(
             ['t1', 't2', 't3'],
-            {},
+            [],
             srcdir,
             package,
+            _get_file_type=get_file_type,
         )
         self.assertEqual(
             {'t1': set(), 't2': set(), 't3': set()},
@@ -28,13 +32,15 @@ class TestHelpers(unittest.TestCase):
 
         result = glob_keyed_sets(
             ['t1', 't2', 't3'],
-            {
-                't1': [Glob('**/no-such-file')],
-                't2': [Glob('**/*.txt')],
-                't3': [Glob('*.txt'), Glob('**/*.json')],
-            },
+            [
+                Glob('**/no-such-file'),
+                Glob('**/*.txt'),
+                Glob('*.txt'),
+                Glob('**/*.json'),
+            ],
             srcdir,
             package,
+            _get_file_type=get_file_type,
         )
         self.assertEqual(
             {
@@ -43,7 +49,6 @@ class TestHelpers(unittest.TestCase):
                     Label.make(package, 'a.txt'),
                 },
                 't3': {
-                    Label.make(package, 'a.txt'),
                     Label.make(package, 'b.json'),
                 },
             },
@@ -59,10 +64,7 @@ class TestHelpers(unittest.TestCase):
             Label.make(pkg, 'a.txt'),
             Label.make(pkg, 'b.json'),
         ])
-        patterns = {
-            't1': [Glob('**/f*'), Glob('*.txt')],
-            't2': [Glob('**/f*'), Glob('*.txt')],
-        }
+        patterns = [Glob('**/f*'), Glob('*.txt')]
         result = match_keyed_sets(ksets, patterns)
         self.assertEqual(
             {

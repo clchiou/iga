@@ -6,6 +6,7 @@ __all__ = [
 
 import itertools
 
+import iga.filetype
 from iga.core import ImmutableOrderedSet
 from iga.core import group
 from iga.core import traverse
@@ -21,10 +22,17 @@ from iga.rule import RuleType
 
 
 CC_SOURCE = 'cc_source'
+CC_HEADER = 'cc_header'
 CC_OBJECT = 'cc_object'
-CC_DEPEND = 'cc_depend'
 CC_LIBRARY = 'cc_library'
 CC_BINARY = 'cc_binary'
+
+
+CC_SUFFIXES = {
+    CC_LIBRARY: {'.a'},
+    CC_SOURCE: {'.c', '.cc', '.cpp', '.cxx', '.C'},
+    CC_HEADER: {'.h', '.hh', '.hpp', '.hxx', '.inc'},
+}
 
 
 def init():
@@ -47,18 +55,22 @@ def init():
         description='LINK $out',
     ))
 
+    for input_type, suffixes in CC_SUFFIXES.items():
+        for suffix in suffixes:
+            iga.filetype.add_suffix(input_type, suffix)
+
     RuleType.register(RuleType.make(
         name=CC_LIBRARY,
-        input_types=[CC_LIBRARY, CC_SOURCE],
-        output_types=[CC_LIBRARY, CC_OBJECT, CC_DEPEND],
+        input_types=[CC_LIBRARY, CC_SOURCE, CC_HEADER],
+        output_types=[CC_LIBRARY, CC_OBJECT],
         make_outputs=make_outputs,
         ninja_rules=[CC_OBJECT, CC_LIBRARY],
         generate_buildstmts=generate_library,
     ))
     RuleType.register(RuleType.make(
         name=CC_BINARY,
-        input_types=[CC_LIBRARY, CC_SOURCE],
-        output_types=[CC_BINARY, CC_OBJECT, CC_DEPEND],
+        input_types=[CC_LIBRARY, CC_SOURCE, CC_HEADER],
+        output_types=[CC_BINARY, CC_OBJECT],
         make_outputs=make_outputs,
         ninja_rules=[CC_OBJECT, CC_BINARY],
         generate_buildstmts=generate_binary,
@@ -73,9 +85,6 @@ def make_outputs(inputs):
         CC_OBJECT: [
             src.with_suffix('.o') for src in inputs[CC_SOURCE]
         ],
-        CC_DEPEND: [
-            src.with_suffix('.o.d') for src in inputs[CC_SOURCE]
-        ],
     }
 
 
@@ -84,19 +93,14 @@ def cc_library(
         srcs: [oneof(Label, Glob)]=(),
         deps: [Label]=()):
     srcs = group(srcs, key=type, as_dict=False)
+    paths = group(srcs[Label], key=iga.filetype.get, as_dict=False)
+    paths[CC_LIBRARY] += deps
     return RuleData.make(
         rule_type=CC_LIBRARY,
         name=name,
-        inputs={
-            CC_LIBRARY: deps,
-            CC_SOURCE: srcs[Label],
-        },
-        input_patterns={
-            CC_SOURCE: srcs[Glob],
-        },
-        outputs={
-            CC_LIBRARY: [name.with_name(_lib(name.name))],
-        },
+        inputs=paths,
+        input_patterns=srcs[Glob],
+        outputs={CC_LIBRARY: [name.with_name(_lib(name.name))]},
     )
 
 
@@ -105,28 +109,25 @@ def cc_binary(
         srcs: [oneof(Label, Glob)]=(),
         deps: [Label]=()):
     srcs = group(srcs, key=type, as_dict=False)
+    paths = group(srcs[Label], key=iga.filetype.get, as_dict=False)
+    paths[CC_LIBRARY] += deps
     return RuleData.make(
         rule_type=CC_BINARY,
         name=name,
-        inputs={
-            CC_LIBRARY: deps,
-            CC_SOURCE: srcs[Label],
-        },
-        input_patterns={
-            CC_SOURCE: srcs[Glob],
-        },
-        outputs={
-            CC_BINARY: [name],
-        },
+        inputs=paths,
+        input_patterns=srcs[Glob],
+        outputs={CC_BINARY: [name]},
     )
 
 
 def generate_objects(rule):
+    headers = rule.inputs[CC_HEADER]
     for src in rule.inputs[CC_SOURCE]:
         yield NinjaBuildstmt.make(
             ninja_rule=CC_OBJECT,
             outputs=[src.with_suffix('.o')],
             explicit_deps=[src],
+            implicit_deps=headers,
         )
 
 

@@ -116,6 +116,6 @@ class RuleData(namedtuple('RuleData', '''
     @staticmethod
     def make(**kwargs):
         kwargs.setdefault('inputs', {})
-        kwargs.setdefault('input_patterns', {})
+        kwargs.setdefault('input_patterns', [])
         kwargs.setdefault('outputs', {})
         return RuleData(**kwargs)

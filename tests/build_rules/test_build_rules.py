@@ -26,6 +26,9 @@ class TestBuildRules(unittest.TestCase):
                 'ot-2': ksets['ot-2'] | ksets['it-2'],
             }
 
+        def get_file_type(label):
+            return label.suffix[1:]
+
         RuleType.register(RuleType.make(
             name='rule-type',
             input_types=['it-1', 'it-2', 'ot-1', 'ot-2'],
@@ -50,10 +53,7 @@ class TestBuildRules(unittest.TestCase):
                         Label.make(package, 'ival-21'),
                     ],
                 },
-                input_patterns={
-                    'ot-1': [Glob('ival-*')],
-                    'ot-2': [Glob('ival-*')],
-                },
+                input_patterns=[Glob('ival-*')],
                 outputs={
                     'ot-1': [
                         Label.make(package, 'output-1'),
@@ -68,19 +68,20 @@ class TestBuildRules(unittest.TestCase):
                 rule_type='rule-type',
                 outputs={
                     'ot-1': [
-                        Label.make(package, 'ival-rule-2-11'),
-                        Label.make(package, 'ival-rule-2-12'),
+                        Label.make(package, 'ival-rule-2-11.ot-1'),
+                        Label.make(package, 'ival-rule-2-12.ot-1'),
                     ],
                     'ot-2': [
-                        Label.make(package, 'ival-rule-2-21'),
-                        Label.make(package, 'ival-rule-2-22'),
-                        Label.make(package, 'ival-rule-2-23'),
+                        Label.make(package, 'ival-rule-2-21.ot-2'),
+                        Label.make(package, 'ival-rule-2-22.ot-2'),
+                        Label.make(package, 'ival-rule-2-23.ot-2'),
                     ],
                 },
             ),
         ]
 
-        rules = build_rules(package, rule_datas, _cxt=cxt)
+        rules = build_rules(package, rule_datas,
+                            _cxt=cxt, _get_file_type=get_file_type)
         self.assertEqual(2, len(rules))
         self.assertRuleEqual(
             Rule(
@@ -95,13 +96,13 @@ class TestBuildRules(unittest.TestCase):
                         Label.make(package, 'ival-21'),
                     },
                     'ot-1': {
-                        Label.make(package, 'ival-rule-2-11'),
-                        Label.make(package, 'ival-rule-2-12'),
+                        Label.make(package, 'ival-rule-2-11.ot-1'),
+                        Label.make(package, 'ival-rule-2-12.ot-1'),
                     },
                     'ot-2': {
-                        Label.make(package, 'ival-rule-2-21'),
-                        Label.make(package, 'ival-rule-2-22'),
-                        Label.make(package, 'ival-rule-2-23'),
+                        Label.make(package, 'ival-rule-2-21.ot-2'),
+                        Label.make(package, 'ival-rule-2-22.ot-2'),
+                        Label.make(package, 'ival-rule-2-23.ot-2'),
                     },
                 },
                 outputs={
@@ -109,15 +110,15 @@ class TestBuildRules(unittest.TestCase):
                         Label.make(package, 'output-1'),
                         Label.make(package, 'ival-11'),
                         Label.make(package, 'ival-12'),
-                        Label.make(package, 'ival-rule-2-11'),
-                        Label.make(package, 'ival-rule-2-12'),
+                        Label.make(package, 'ival-rule-2-11.ot-1'),
+                        Label.make(package, 'ival-rule-2-12.ot-1'),
                     },
                     'ot-2': {
                         Label.make(package, 'output-2'),
                         Label.make(package, 'ival-21'),
-                        Label.make(package, 'ival-rule-2-21'),
-                        Label.make(package, 'ival-rule-2-22'),
-                        Label.make(package, 'ival-rule-2-23'),
+                        Label.make(package, 'ival-rule-2-21.ot-2'),
+                        Label.make(package, 'ival-rule-2-22.ot-2'),
+                        Label.make(package, 'ival-rule-2-23.ot-2'),
                     },
                 },
             ),
