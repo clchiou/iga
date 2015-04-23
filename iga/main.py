@@ -9,6 +9,7 @@ import sys
 from collections import OrderedDict
 
 import iga.context
+import iga.fargparse
 import iga.ninja
 import iga.package
 from iga.context import load_workspace
@@ -41,8 +42,19 @@ def init(args):
         format = '%(asctime)s %(levelname)s %(name)s: %(message)s'
     logging.basicConfig(level=level, format=format)
 
+    iga.fargparse.Parser.register_parse_func(str, parse_string)
+
     from iga.rules import cc
     cc.init()
+
+    from iga.rules import genrule
+    genrule.init()
+
+
+def parse_string(string):
+    if not isinstance(string, str):
+        raise iga.fargparse.ParseError()
+    return string
 
 
 def main(argv=None):

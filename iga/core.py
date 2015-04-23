@@ -151,5 +151,9 @@ class KeyedSets(Mapping):
             if key in self._sets:
                 self._sets[key].difference_update(other[key])
 
+    def all_values(self):
+        for key in sorted(self):
+            yield from self[key]
+
     def as_dict_of_sets(self):
         return dict((key, set(kset)) for key, kset in self._sets.items())

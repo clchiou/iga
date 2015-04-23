@@ -121,6 +121,7 @@ class TestBuildRules(unittest.TestCase):
                         Label.make(package, 'ival-rule-2-23.ot-2'),
                     },
                 },
+                variables={},
             ),
             rules[0],
         )

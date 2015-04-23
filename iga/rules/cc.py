@@ -76,8 +76,8 @@ def init():
         generate_buildstmts=generate_binary,
     ))
 
-    RuleFunc.register(RuleFunc.make(cc_binary))
     RuleFunc.register(RuleFunc.make(cc_library))
+    RuleFunc.register(RuleFunc.make(cc_binary))
 
 
 def make_outputs(inputs):
@@ -93,12 +93,12 @@ def cc_library(
         srcs: [oneof(Label, Glob)]=(),
         deps: [Label]=()):
     srcs = group(srcs, key=type, as_dict=False)
-    paths = group(srcs[Label], key=iga.filetype.get, as_dict=False)
-    paths[CC_LIBRARY] += deps
+    inputs = group(srcs[Label], key=iga.filetype.get, as_dict=False)
+    inputs[CC_LIBRARY] += deps
     return RuleData.make(
         rule_type=CC_LIBRARY,
         name=name,
-        inputs=paths,
+        inputs=inputs,
         input_patterns=srcs[Glob],
         outputs={CC_LIBRARY: [name.with_name(_lib(name.name))]},
     )
@@ -109,12 +109,12 @@ def cc_binary(
         srcs: [oneof(Label, Glob)]=(),
         deps: [Label]=()):
     srcs = group(srcs, key=type, as_dict=False)
-    paths = group(srcs[Label], key=iga.filetype.get, as_dict=False)
-    paths[CC_LIBRARY] += deps
+    inputs = group(srcs[Label], key=iga.filetype.get, as_dict=False)
+    inputs[CC_LIBRARY] += deps
     return RuleData.make(
         rule_type=CC_BINARY,
         name=name,
-        inputs=paths,
+        inputs=inputs,
         input_patterns=srcs[Glob],
         outputs={CC_BINARY: [name]},
     )
