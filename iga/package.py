@@ -7,9 +7,11 @@ import itertools
 import logging
 
 import iga.context
+import iga.precond
 from iga.build_rules import build_rules
 from iga.core import WriteOnceDict
 from iga.error import IgaError
+from iga.path import Glob
 from iga.rule import Rule
 from iga.rule import RuleFunc
 
@@ -68,10 +70,16 @@ def _load_rules(package):
 def _make_buildfile_globals():
     varz = WriteOnceDict()
     varz.update(
+        glob=glob,
         package=_do_nothing('package'),
     )
     varz.update(RuleFunc.get_all_objects())
     return dict(varz)
+
+
+def glob(string):
+    iga.precond.check_type(string, str)
+    return Glob(string)
 
 
 def _do_nothing(func_name):

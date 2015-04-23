@@ -20,4 +20,10 @@ class Glob:
         yield from path.glob(self.pattern)
 
 
-iga.fargparse.Parser.register_parse_func(Glob, Glob)
+def _parse(glob):
+    if not isinstance(glob, Glob):
+        raise iga.fargparse.ParseError()
+    return glob
+
+
+iga.fargparse.Parser.register_parse_func(Glob, _parse)
