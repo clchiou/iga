@@ -86,7 +86,9 @@ def main(argv=None):
         for ninja_rule in ninja_rules.values():
             ninja_rule.write_to(ninja_file)
         for rule in rules.values():
-            rule.write_to(ninja_file)
+            with iga.context.create() as cxt:
+                cxt['package'] = rule.name.package
+                rule.write_to(ninja_file)
 
     return 0
 
